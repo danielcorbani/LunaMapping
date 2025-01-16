@@ -1,24 +1,40 @@
 import paletai.mapping.*;
 import processing.opengl.*;
+import processing.video.Movie;
 
 PImage img;
-VidMap vm;
-
+VidMap vm1, vm2;
+Movie mov;
 
 void setup(){
-  size(640,480,P2D);
+  //size(640,480,P2D);
+  fullScreen(P2D,2);
   img = loadImage("https://t3.ftcdn.net/jpg/02/43/25/90/360_F_243259090_crbVsAqKF3PC2jk2eKiUwZHBPH8Q6y9Y.jpg");
-  
-  vm = new VidMap(this);
+  mov = new Movie(this,"beach01.mp4");
+  mov.loop();
+  vm1 = new VidMap(this,"vm1");
+  vm2 = new VidMap(this,"vm2");
 }
 
 
 void draw(){
   background(100,50,50);
   //image(img,0,0);
-  vm.show(img);
+  if(mov.available()) mov.read(); 
+  //vm1.checkHover(mouseX, mouseY);  // Check if mouse is hovering over a point
+  //vm1.show(img);
+  vm2.checkHover(mouseX, mouseY);  // Check if mouse is hovering over a point
+  vm2.show(mov);
 }
 
 void keyReleased(){
-  if (key == 'c') vm.toggleCalibration();
+  if (key == 'c') {
+    vm1.toggleCalibration();
+    vm2.toggleCalibration();
+  }
+}
+
+void mouseDragged() {
+  vm1.moveHoverPoint(mouseX, mouseY);  // Move hovered point while dragging
+  vm2.moveHoverPoint(mouseX, mouseY);  // Move hovered point while dragging
 }

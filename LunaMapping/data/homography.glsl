@@ -45,7 +45,9 @@ void main(void) {
   angle += acos( dot( normalize(ab3.xy-ab.xy), normalize(ab0.xy-ab.xy) ) );
 
   //maps texture using ab coordinates; xyz are rgb colors
-  vec3 col = texture2D(texture, ab).xyz;
+  //Manually specifying the level of detail can help reduce the aliasing caused by undersampling.
+  float LOD = log2(max(1.0, length(uvk.xy / resolution)));
+  vec3 col = texture2DLod(texture, ab, LOD).xyz;
   
   //if (ab.x>=0.0 && ab.x<=1.0 && ab.y>=0.0 && ab.y<=1.0 ) {
   if (angle > 6.28 ) {
