@@ -191,9 +191,9 @@ public class VidMap {
 
             // Save the XML file
             p.saveXML(root, "data/homography.xml");
-            p.println("Homography for " + objectName + " saved.");
+            PApplet.println("Homography for " + objectName + " saved.");
         } catch (Exception e) {
-            p.println("Failed to save homography: " + e.getMessage());
+        	PApplet.println("Failed to save homography: " + e.getMessage());
         }
     }
 
@@ -201,14 +201,14 @@ public class VidMap {
         try {
             XML root = p.loadXML("data/homography.xml");
             if (root == null) {
-                p.println("No homography file found.");
+            	PApplet.println("No homography file found.");
                 return;
             }
 
             // Find the node for this object
             XML objectNode = root.getChild(objectName);
             if (objectNode == null) {
-                p.println("No data found for " + objectName);
+            	PApplet.println("No data found for " + objectName);
                 return;
             }
 
@@ -233,9 +233,9 @@ public class VidMap {
             }
             updateHomography(xyN, uvN);
 
-            p.println("Homography for " + objectName + " loaded.");
+            PApplet.println("Homography for " + objectName + " loaded.");
         } catch (Exception e) {
-            p.println("Failed to load homography: " + e.getMessage());
+        	PApplet.println("Failed to load homography: " + e.getMessage());
         }
     }
 
