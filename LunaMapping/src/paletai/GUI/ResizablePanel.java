@@ -16,6 +16,13 @@ public class ResizablePanel {
         this.h = h;
         panelGraphics = (PGraphics2D) p.createGraphics((int) w, (int) h, PApplet.P2D);
     }
+    
+    public float getHeight() {
+        return this.h;
+    }
+    public float getWidth() {
+        return this.w;
+    }
 
     // Display the panel's graphics
     public void display(PGraphics2D sceneCanvas) {
