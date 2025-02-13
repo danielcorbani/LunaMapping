@@ -23,6 +23,10 @@ public class VidMap {
 
 	String objectName; // Unique name for the VidMap object
 
+	private boolean movingImage = false;
+	private PVector initialMousePos;
+	private PVector[] initialCorners;
+
 	public VidMap(PApplet p, String name) {
 		this.p = p;
 		this.objectName = name;
@@ -30,7 +34,7 @@ public class VidMap {
 		pgInput = (PGraphics2D) p.createGraphics(p.width, p.height, PConstants.P2D);
 		mapInOut = p.loadShader("homography.glsl");
 		mapInOut.set("resolution", p.width, p.height);
-		
+
 		mat = new MathHomography();
 		resetHomography();
 	}
@@ -54,10 +58,10 @@ public class VidMap {
 			uvN[i] = Pixel2Nornal(uvP[i]);
 		}
 
-		//mat = new MathHomography();
+		// mat = new MathHomography();
 		updateHomography(xyN, uvN);
 	}
-	
+
 	public void updateHomographyFromPixel(PVector[] xyPP, PVector[] uvPP) {
 		for (int i = 0; i < 4; i++) {
 			xyP[i] = xyPP[i];
@@ -66,10 +70,10 @@ public class VidMap {
 			uvN[i] = Pixel2Nornal(uvPP[i]);
 		}
 
-		//mat = new MathHomography();
+		// mat = new MathHomography();
 		updateHomography(xyN, uvN);
 	}
-	
+
 	public void updateHomography(PVector[] xyNew, PVector[] uvNew) {
 
 		for (int i = 0; i < uvN.length; i++) {
@@ -134,6 +138,10 @@ public class VidMap {
 		show(pgInput);
 	}
 
+	public PGraphics2D getMediaCanvas() {
+		return pgCanvas;
+	}
+
 	public PVector Pixel2Nornal(PVector in) {
 		return new PVector(in.x / p.width, 1.0f - (in.y / p.height)); // Normalize and invert Y-axis for shader
 	}
@@ -144,13 +152,15 @@ public class VidMap {
 
 	public void toggleCalibration() {
 		calibrate = !calibrate;
-		System.out.println("calibrate = " + calibrate);
+		System.out.println("calibrate " + objectName + "= " + calibrate);
 	}
 
 	// Function to check if mouse is near any point and set the hoverPoint
 	public void checkHover(float x, float y) {
 		PVector mouse = new PVector(x, y); // Use Processing coordinates for checking hover
 		hoverPoint = -1; // Reset hover point
+		movingImage = false;
+
 		if (calibrate) {
 			for (int i = 0; i < uvP.length; i++) {
 				float dist = PVector.dist(mouse, uvP[i]);
@@ -159,16 +169,47 @@ public class VidMap {
 					break;
 				}
 			}
+			// Check if clicking inside the image
+			if (isMouseInsideImage(mouse)) {
+				movingImage = true;
+				initialMousePos = new PVector(x, y);
+				initialCorners = new PVector[4];
+				for (int i = 0; i < 4; i++) {
+					initialCorners[i] = uvP[i].copy(); // Store initial corners
+				}
+			}
 		}
 	}
 
+	// Helper method to check if mouse is inside the quadrilateral formed by uvP[]
+	private boolean isMouseInsideImage(PVector mouse) {
+	    float minX = Math.min(Math.min(uvP[0].x, uvP[1].x), Math.min(uvP[2].x, uvP[3].x));
+	    float maxX = Math.max(Math.max(uvP[0].x, uvP[1].x), Math.max(uvP[2].x, uvP[3].x));
+	    float minY = Math.min(Math.min(uvP[0].y, uvP[1].y), Math.min(uvP[2].y, uvP[3].y));
+	    float maxY = Math.max(Math.max(uvP[0].y, uvP[1].y), Math.max(uvP[2].y, uvP[3].y));
+
+	    return mouse.x > minX && mouse.x < maxX && mouse.y > minY && mouse.y < maxY;
+	}
+	
 	// Function to move the hovered point when dragging
 	public void moveHoverPoint(float x, float y) {
-		if (hoverPoint != -1) {
-			uvP[hoverPoint] = new PVector(x, y); // Update in Processing coordinates
-			uvN[hoverPoint] = Pixel2Nornal(uvP[hoverPoint]); // Convert to normalized coordinates for the shader
-			updateHomography(xyN, uvN);
-		}
+	    if (hoverPoint != -1) {
+	        uvP[hoverPoint] = new PVector(x, y); // Update in Processing coordinates
+	        uvN[hoverPoint] = Pixel2Nornal(uvP[hoverPoint]); // Convert to normalized coordinates for the shader
+	        updateHomography(xyN, uvN);
+	    } else if (movingImage) {
+	        PVector delta = new PVector(x - initialMousePos.x, y - initialMousePos.y);
+	        for (int i = 0; i < 4; i++) {
+	            uvP[i] = PVector.add(initialCorners[i], delta);
+	            uvN[i] = Pixel2Nornal(uvP[i]);
+	        }
+	        updateHomography(xyN, uvN);
+	    }
+	}
+
+
+	public void mouseReleased() {
+	    movingImage = false;
 	}
 
 	public void save() {

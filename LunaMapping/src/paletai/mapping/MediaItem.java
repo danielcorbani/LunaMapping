@@ -17,10 +17,10 @@ public class MediaItem {
 	private VidMap vidMap; // Homography transformation
 	public int mediaWidth, mediaHeight;
 	
-	public MediaItem(PApplet p, String filePath) {
+	public MediaItem(PApplet p, String filePath, int sceneIndex) {
 		this.p = p;
 		this.filePath = filePath;
-		this.fileName = extractFileName(filePath);
+		this.fileName = extractFileName(filePath) + "_scene" + String.valueOf(sceneIndex); //NEED TO CHECK THIS!!!!!
 		this.isVideo = isVideoFile(filePath);
 		this.mediaCanvas = (PGraphics2D) p.createGraphics(p.width, p.height, PConstants.P2D);
 		this.vidMap = new VidMap(p, fileName); // Pass fileName to VidMap
@@ -46,15 +46,16 @@ public class MediaItem {
 			}
 		}
 		// Apply aspect ratio correction
+		System.out.println("mediaHeight init = " + mediaHeight);
 	    if(mediaHeight != 0) applyAspectRatioCorrection(mediaWidth, mediaHeight);
 	}
 	
 	// **🔹 Aspect Ratio Correction**
 	private void applyAspectRatioCorrection(int mediaWidth, int mediaHeight) {
 	    float screenAspect = (float) p.width / p.height;
-	    System.out.println("screenAspect = " + screenAspect); //1.3334
+	    //System.out.println("screenAspect = " + screenAspect); //1.3334
 	    float mediaAspect = (float) mediaWidth / mediaHeight;
-	    System.out.println("mediaAspect = " + mediaAspect);   //0.5625
+	    //System.out.println("mediaAspect = " + mediaAspect);   //0.5625
 	    float newWidth, newHeight;
 	    float offsetX = 0, offsetY = 0;
 
@@ -70,10 +71,10 @@ public class MediaItem {
 	        offsetX = (p.width - newWidth) / 2;
 	        
 	    }
-	    System.out.println("offsetY = " + offsetY);
-        System.out.println("newHeight = " + newHeight);
-        System.out.println("newWidth = " + newWidth);
-	    System.out.println("offsetX = " + offsetX); //231.45
+	    //System.out.println("offsetY = " + offsetY);
+        //System.out.println("newHeight = " + newHeight);
+        //System.out.println("newWidth = " + newWidth);
+	    //System.out.println("offsetX = " + offsetX); //231.45
 	    // Update homography points
 	    PVector[] uvP = {
 	        new PVector(offsetX, offsetY),
@@ -113,6 +114,9 @@ public class MediaItem {
 		vidMap.moveHoverPoint(x, y);
 	}
 
+	public void mouseReleased() {
+		vidMap.mouseReleased();
+    }
 	public void saveHomography() {
 		vidMap.save();
 	}
@@ -199,6 +203,6 @@ public class MediaItem {
 	}
 
 	public PGraphics2D getMediaCanvas() {
-		return mediaCanvas;
+		return vidMap.getMediaCanvas();
 	}
 }
