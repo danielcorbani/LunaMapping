@@ -30,7 +30,8 @@ public class VidMap {
 		pgInput = (PGraphics2D) p.createGraphics(p.width, p.height, PConstants.P2D);
 		mapInOut = p.loadShader("homography.glsl");
 		mapInOut.set("resolution", p.width, p.height);
-
+		
+		mat = new MathHomography();
 		resetHomography();
 	}
 
@@ -53,10 +54,22 @@ public class VidMap {
 			uvN[i] = Pixel2Nornal(uvP[i]);
 		}
 
-		mat = new MathHomography();
+		//mat = new MathHomography();
 		updateHomography(xyN, uvN);
 	}
+	
+	public void updateHomographyFromPixel(PVector[] xyPP, PVector[] uvPP) {
+		for (int i = 0; i < 4; i++) {
+			xyP[i] = xyPP[i];
+			uvP[i] = uvPP[i];
+			xyN[i] = Pixel2Nornal(xyPP[i]);
+			uvN[i] = Pixel2Nornal(uvPP[i]);
+		}
 
+		//mat = new MathHomography();
+		updateHomography(xyN, uvN);
+	}
+	
 	public void updateHomography(PVector[] xyNew, PVector[] uvNew) {
 
 		for (int i = 0; i < uvN.length; i++) {

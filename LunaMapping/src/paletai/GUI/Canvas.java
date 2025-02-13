@@ -5,7 +5,7 @@ import processing.opengl.PGraphics2D;
 import java.io.File;
 import java.util.ArrayList;
 
-public class Scene {
+public class Canvas {
 	private PApplet p;
 	private PGraphics2D sceneCanvas;
 	// private DisplayManager displayManager;
@@ -27,7 +27,7 @@ public class Scene {
 	private String sketchDir;
 	private ArrayList<String> fileList; // List of files in data folder
 
-	public Scene(PApplet p, String sketchDir) {
+	public Canvas(PApplet p, String sketchDir) {
 		this.p = p;
 		sceneCanvas = (PGraphics2D) p.createGraphics(p.width, p.height, PApplet.P2D);
 		
@@ -81,8 +81,6 @@ public class Scene {
 	        System.out.println("No 'data' folder found at: " + dataFolder.getAbsolutePath());
 	    }
 
-	    // Debugging output to confirm files are being listed
-	    System.out.println("Files found: " + fileList);
 	}
 
 
@@ -191,11 +189,11 @@ public class Scene {
 
 		// Call updatePanels() only once after dragging
 		updatePanels();
-		System.out.println("Mouse released and panels updated");
+		//System.out.println("Mouse released and panels updated");
 	}
 
 	private void updatePanels() {
-		System.out.println("Updating panels");
+		//System.out.println("Updating panels");
 		leftPanel.setPositionAndSize(0, 0, leftEdge, bottomEdge);
 		centerPanel.setPositionAndSize(leftEdge, 0, rightEdge - leftEdge, bottomEdge);
 		rightPanel.setPositionAndSize(rightEdge, 0, p.width - rightEdge, bottomEdge);

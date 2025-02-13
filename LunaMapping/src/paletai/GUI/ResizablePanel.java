@@ -53,7 +53,7 @@ public class ResizablePanel {
             if (w > 0 && h > 0) {
                 panelGraphics.dispose(); // Free resources of the old graphics
                 panelGraphics = (PGraphics2D) p.createGraphics((int) w, (int) h, PApplet.P2D);
-                System.out.println("Recreated panelGraphics with new size: " + w + "x" + h);
+                //System.out.println("Recreated panelGraphics with new size: " + w + "x" + h);
             }
         }
     }
