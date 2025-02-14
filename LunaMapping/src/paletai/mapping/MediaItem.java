@@ -20,7 +20,8 @@ public class MediaItem {
 	public MediaItem(PApplet p, String filePath, int sceneIndex) {
 		this.p = p;
 		this.filePath = filePath;
-		this.fileName = extractFileName(filePath) + "_scene" + String.valueOf(sceneIndex); //NEED TO CHECK THIS!!!!!
+		this.fileName = extractFileName(filePath) + "_scene " + String.valueOf(sceneIndex); //NEED TO CHECK THIS!!!!!
+		System.out.println("fileName = " + fileName);
 		this.isVideo = isVideoFile(filePath);
 		this.mediaCanvas = (PGraphics2D) p.createGraphics(p.width, p.height, PConstants.P2D);
 		this.vidMap = new VidMap(p, fileName); // Pass fileName to VidMap
@@ -46,7 +47,7 @@ public class MediaItem {
 			}
 		}
 		// Apply aspect ratio correction
-		System.out.println("mediaHeight init = " + mediaHeight);
+		
 	    if(mediaHeight != 0) applyAspectRatioCorrection(mediaWidth, mediaHeight);
 	}
 	
