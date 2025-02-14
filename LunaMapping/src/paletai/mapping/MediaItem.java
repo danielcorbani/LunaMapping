@@ -20,19 +20,18 @@ public class MediaItem {
 	public MediaItem(PApplet p, String filePath, int sceneIndex) {
 		this.p = p;
 		this.filePath = filePath;
-		this.fileName = extractFileName(filePath) + "_scene " + String.valueOf(sceneIndex); //NEED TO CHECK THIS!!!!!
+		this.fileName = extractFileName(filePath) + "scene" + String.valueOf(sceneIndex); //NEED TO CHECK THIS!!!!!
 		System.out.println("fileName = " + fileName);
 		this.isVideo = isVideoFile(filePath);
 		this.mediaCanvas = (PGraphics2D) p.createGraphics(p.width, p.height, PConstants.P2D);
-		this.vidMap = new VidMap(p, fileName); // Pass fileName to VidMap
-
-		
+		this.vidMap = new VidMap(p, fileName); // Pass fileName to VidMap		
 		
 		if (isVideo) {
 			this.movie = new Movie(p, filePath);
 			movie.loop(); // Preload the movie (optional)
 			mediaWidth = movie.width;
 			mediaHeight = movie.height;
+			movie.stop();
 		} else {
 			img = p.loadImage(filePath);
 
@@ -72,10 +71,7 @@ public class MediaItem {
 	        offsetX = (p.width - newWidth) / 2;
 	        
 	    }
-	    //System.out.println("offsetY = " + offsetY);
-        //System.out.println("newHeight = " + newHeight);
-        //System.out.println("newWidth = " + newWidth);
-	    //System.out.println("offsetX = " + offsetX); //231.45
+	    
 	    // Update homography points
 	    PVector[] uvP = {
 	        new PVector(offsetX, offsetY),
@@ -118,6 +114,7 @@ public class MediaItem {
 	public void mouseReleased() {
 		vidMap.mouseReleased();
     }
+	
 	public void saveHomography() {
 		vidMap.save();
 	}
@@ -159,7 +156,7 @@ public class MediaItem {
 				mediaHeight = movie.height;
 				applyAspectRatioCorrection(mediaWidth, mediaHeight);
 			}
-			// mediaCanvas.image(movie, 0, 0, mediaCanvas.width, mediaCanvas.height);
+			
 		}
 		if (isVideo) {
 			mediaCanvas.image(movie, 0, 0, mediaCanvas.width, mediaCanvas.height);
@@ -184,6 +181,18 @@ public class MediaItem {
 				movie.loop();
 			}
 		}
+	}
+
+	public void playMedia() {
+	    if (isVideo && movie != null && !movie.isPlaying()) {
+	        movie.loop();
+	    }
+	}
+	
+	public void stopMedia() {
+	    if (isVideo && movie != null && movie.isPlaying()) {
+	        movie.stop();
+	    }
 	}
 
 	// Getters
