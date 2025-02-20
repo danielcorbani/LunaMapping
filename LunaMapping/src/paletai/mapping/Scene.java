@@ -25,9 +25,20 @@ public class Scene {
 		}
 	}
 
+	public boolean isReady() {
+	    for (MediaItem item : mediaItems) {
+	        if (!item.isLoaded()) {
+	            return false; // Wait until all media items confirm they are loaded
+	        }
+	    }
+	    return true;
+	}
+
 	// **🔹 Render Scene**
 	public void render(int mouseX, int mouseY) {
+		//System.out.println("Scene Render Running...");
 		for (MediaItem item : mediaItems) {
+			//System.out.println("Rendering MediaItem: " + item.getFileName());
 			item.checkHover(mouseX, mouseY); // Pass explicit mouse position
 			item.render();
 		}
@@ -50,7 +61,7 @@ public class Scene {
 	}
 
 	// **🔹 Mouse Interaction for Calibration**
-	public void mouseDragged(int mouseX, int mouseY) {
+	public void moveHoverPoint(int mouseX, int mouseY) {
 		if (activeMedia != null) {
 			activeMedia.moveHoverPoint(mouseX, mouseY);
 		}
@@ -72,12 +83,13 @@ public class Scene {
 		this.isActive = isActive;
 		//loadAll();
 		for (MediaItem item : mediaItems) {
-			if (isActive) {
+			if (this.isActive) {
 				item.playMedia(); // Start video when scene is active
 			} else {
 				item.stopMedia(); // Pause video when scene is inactive
 			}
 		}
+		//System.out.println("Setting Scene Active: " + this.isActive);
 	}
 
 	public void saveAll() {

@@ -1,15 +1,18 @@
 package paletai.GUI;
 
 import processing.core.PApplet;
+import processing.core.PConstants;
 import processing.opengl.PGraphics2D;
 import java.io.File;
 import java.util.ArrayList;
+import paletai.mapping.*;
+import processing.video.*;
+
 
 public class Canvas {
 	private PApplet p;
 	private PGraphics2D sceneCanvas;
-	// private DisplayManager displayManager;
-
+	
 	// Edges/handles
 	private float leftEdge, rightEdge, bottomEdge;
 	private float resizeMargin = 10;
@@ -26,8 +29,10 @@ public class Canvas {
 	
 	private String sketchDir;
 	private ArrayList<String> fileList; // List of files in data folder
-
-	public Canvas(PApplet p, String sketchDir) {
+	
+	private Project project;
+	
+	public Canvas(PApplet p, String sketchDir, Project project) {
 		this.p = p;
 		sceneCanvas = (PGraphics2D) p.createGraphics(p.width, p.height, PApplet.P2D);
 		
@@ -52,10 +57,7 @@ public class Canvas {
 		rightPanel.drawContent();
 		bottomPanel.drawContent();
 
-		// Initialize monitor detection
-//	    displayManager = new DisplayManager();
-//	    boolean hasSecondMonitor = displayManager.isSecondMonitorAvailable();
-//	    System.out.println("Second monitor available: " + hasSecondMonitor);
+		this.project = project;
 	}
 
 	// Scan the data folder for images and videos
@@ -83,8 +85,6 @@ public class Canvas {
 
 	}
 
-
-
 	public void display() {
 		sceneCanvas.beginDraw();
 		sceneCanvas.background(220);
@@ -100,11 +100,13 @@ public class Canvas {
 
 		// Draw edge handles
 		drawLimitHandles(sceneCanvas);
-
+		drawAddSceneButton(sceneCanvas);
+		drawSceneTabs(sceneCanvas);
 		sceneCanvas.endDraw();
 		p.image(sceneCanvas, 0, 0);
 	}
 
+	
 	// Draw the file list inside the left panel
 	private void drawFileList(PGraphics2D pg) {
 		pg.fill(0);
@@ -205,4 +207,73 @@ public class Canvas {
 		rightPanel.drawContent();
 		bottomPanel.drawContent();
 	}
+	
+	// Inside Canvas class
+	void drawAddSceneButton(PGraphics2D pg) {
+	    float btnX = centerPanel.x + 10;  // Position at bottom left of center panel
+	    float btnY = centerPanel.y + centerPanel.h - 40;
+	    float btnW = 100, btnH = 30;
+	    
+	    pg.fill(50, 150, 250);  // Blue color for button
+	    pg.rect(btnX, btnY, btnW, btnH, 8);
+	    
+	    pg.fill(255);
+	    pg.textAlign(PConstants.CENTER, PConstants.CENTER);
+	    pg.text("New Scene", btnX + btnW / 2, btnY + btnH / 2);
+	}
+
+	// Detect button click
+	public boolean isOverAddSceneButton(int mouseX, int mouseY) {
+	    float btnX = centerPanel.x + 10;
+	    float btnY = centerPanel.y + centerPanel.h - 40;
+	    float btnW = 100, btnH = 30;
+
+	    return (mouseX > btnX && mouseX < btnX + btnW &&
+	            mouseY > btnY && mouseY < btnY + btnH);
+	}
+
+	void drawSceneTabs(PGraphics2D pg) {
+	    float tabX = centerPanel.x + 10;  // Start position
+	    float tabY = centerPanel.y + 10;
+	    float tabW = 80, tabH = 25;
+	    
+	    for (int i = 0; i < project.getScenes().size(); i++) {
+	        Scene scene = project.getScenes().get(i);
+	        
+	        // Highlight active scene
+	        if (i == project.getActiveSceneIndex()) {
+	            pg.fill(50, 150, 250);
+	        } else {
+	            pg.fill(200);
+	        }
+
+	        pg.rect(tabX, tabY, tabW, tabH, 6);
+	        
+	        // Scene number inside tab
+	        pg.fill(0);
+	        pg.textAlign(PConstants.CENTER, PConstants.CENTER);
+	        pg.text("Scene " + (i + 1), tabX + tabW / 2, tabY + tabH / 2);
+	        
+	        tabX += tabW + 5; // Move next tab to the right
+	    }
+	}
+	
+	public int getClickedSceneTab(int mouseX, int mouseY) {
+	    float tabX = centerPanel.x + 10;
+	    float tabY = centerPanel.y + 10;
+	    float tabW = 80, tabH = 25;
+	    
+	    for (int i = 0; i < project.getScenes().size(); i++) {
+	        if (mouseX > tabX && mouseX < tabX + tabW &&
+	            mouseY > tabY && mouseY < tabY + tabH) {
+	        	System.out.println("Clicked Scene " + i);
+	        	System.out.println("Scenes size " + project.getScenes().size());
+	        	return i;
+	        }
+	        tabX += tabW + 5; // Move to next tab
+	    }
+	    return -1;
+	}
+
+
 }

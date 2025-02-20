@@ -18,6 +18,7 @@ public class VidMap {
 	PMatrix3D H;
 
 	boolean calibrate = false;
+	public boolean checkInput = false; // to be reverted, if needed
 	int hoverPoint = -1; // Point index to highlight when hovering
 	int selectedPoint = -1; // New variable to store the selected point for live adjustment
 
@@ -89,45 +90,104 @@ public class VidMap {
 
 	}
 
+	private void makeGrid(PVector[] corners) {
+		int gridSize = 10; // Number of cells in the grid
+		pgCanvas.stroke(0, 255, 0);
+	    pgCanvas.strokeWeight(1);
+	    pgCanvas.noFill();
+	    
+	    // Interpolating horizontal and vertical grid lines
+	    for (int i = 0; i <= gridSize; i++) {
+	        float t = i / (float) gridSize;
+	        
+	        // Horizontal lines interpolation
+	        PVector startH = PVector.lerp(corners[0], corners[1], t);
+	        PVector endH = PVector.lerp(corners[3], corners[2], t);
+	        pgCanvas.line(startH.x, startH.y, endH.x, endH.y);
+	        
+	        // Vertical lines interpolation
+	        PVector startV = PVector.lerp(corners[0], corners[3], t);
+	        PVector endV = PVector.lerp(corners[1], corners[2], t);
+	        pgCanvas.line(startV.x, startV.y, endV.x, endV.y);
+	    }
+	}
+	
 	public void show(PGraphics2D input) {
+		// System.out.println("VidMap Rendering...");
+		if (pgCanvas == null) {
+			System.out.println("Initializing pgCanvas late...");
+			pgCanvas = (PGraphics2D) p.createGraphics(p.width, p.height, PConstants.P2D);
+		}
 		pgCanvas.beginDraw();
+		// System.out.println("before image");
 		pgCanvas.image(input, 0, 0, pgCanvas.width, pgCanvas.height);
 
 		if (calibrate) {
 			// Draw the green grid inside pgCanvas
-			int gridSize = 10; // Number of cells in the grid
-			pgCanvas.stroke(0, 255, 0);
-			pgCanvas.strokeWeight(1);
-			pgCanvas.noFill();
-
-			for (int i = 0; i <= gridSize; i++) {
-				float x = i * (pgCanvas.width / (float) gridSize);
-				pgCanvas.line(x, 0, x, pgCanvas.height); // Vertical lines
-				float y = i * (pgCanvas.height / (float) gridSize);
-				pgCanvas.line(0, y, pgCanvas.width, y); // Horizontal lines
+//			int gridSize = 10; // Number of cells in the grid
+//			pgCanvas.stroke(0, 255, 0);
+//			pgCanvas.strokeWeight(1);
+//			pgCanvas.noFill();
+			
+			if (!checkInput) {
+				makeGrid(xyP);
+			} else {
+				makeGrid(xyP);
 			}
+//			for (int i = 0; i <= gridSize; i++) {
+//				if (!checkInput) {
+//					float x = i * (pgCanvas.width / (float) gridSize);
+//					pgCanvas.line(x, 0, x, pgCanvas.height); // Vertical lines
+//					float y = i * (pgCanvas.height / (float) gridSize);
+//					pgCanvas.line(0, y, pgCanvas.width, y); // Horizontal lines
+//					makeGrid(xyP);
+//				} else {
+//					makeGrid(xyP);
+//				}
+//			}
 		}
 
 		pgCanvas.endDraw();
-		pgCanvas.filter(mapInOut);
+
+		if (!checkInput)
+			pgCanvas.filter(mapInOut); // to be reverted, if needed
 		p.image(pgCanvas, 0, 0);
 
 		if (calibrate) {
-			// Highlight the corners on the main canvas
-			p.beginShape();
-			p.stroke(0, 255, 0);
-			p.strokeWeight(2);
-			p.noFill();
-			for (int i = 0; i < uvN.length; i++) {
-				if (i == hoverPoint) {
-					p.fill(255, 0, 0); // Highlight hovered point
-					p.ellipse(p.width * uvN[i].x, p.height * (1 - uvN[i].y), 10, 10);
-					p.noFill();
+
+			if (!checkInput) {
+				// Highlight the corners on the main canvas
+				p.beginShape();
+				p.stroke(0, 255, 0);
+				p.strokeWeight(2);
+				p.noFill();
+				for (int i = 0; i < uvN.length; i++) {
+					if (i == hoverPoint) {
+						p.fill(255, 0, 0); // Highlight hovered point
+						p.ellipse(p.width * uvN[i].x, p.height * (1 - uvN[i].y), 10, 10);
+						p.noFill();
+					}
+					p.vertex(p.width * uvN[i].x, p.height * (1 - uvN[i].y));
 				}
-				p.vertex(p.width * uvN[i].x, p.height * (1 - uvN[i].y));
+				p.endShape(PConstants.CLOSE);
+			} else {
+				// Highlight the corners on the main canvas
+				p.beginShape();
+				p.stroke(0, 255, 0);
+				p.strokeWeight(2);
+				p.noFill();
+				for (int i = 0; i < uvN.length; i++) {
+					if (i == hoverPoint) {
+						p.fill(255, 0, 0); // Highlight hovered point
+						p.ellipse(p.width * xyN[i].x, p.height * (1 - xyN[i].y), 10, 10);
+						p.noFill();
+					}
+					p.vertex(p.width * xyN[i].x, p.height * (1 - xyN[i].y));
+				}
+				p.endShape(PConstants.CLOSE);
 			}
-			p.endShape(PConstants.CLOSE);
 		}
+
 	}
 
 	public void show(PImage input) {
@@ -154,6 +214,16 @@ public class VidMap {
 		calibrate = !calibrate;
 		System.out.println("calibrate " + objectName + "= " + calibrate);
 	}
+	
+	public void offCalibration() {
+		calibrate = false;
+		System.out.println("calibrate " + objectName + "= " + calibrate);
+	}
+	
+	public void onCalibration() {
+		calibrate = true;
+		System.out.println("calibrate " + objectName + "= " + calibrate);
+	}
 
 	// Function to check if mouse is near any point and set the hoverPoint
 	public void checkHover(float x, float y) {
@@ -162,54 +232,72 @@ public class VidMap {
 		movingImage = false;
 
 		if (calibrate) {
-			for (int i = 0; i < uvP.length; i++) {
-				float dist = PVector.dist(mouse, uvP[i]);
-				if (dist < 10) { // Set hover if within a certain distance threshold
-					hoverPoint = i;
-					break;
+			if (!checkInput) {
+				for (int i = 0; i < uvP.length; i++) {
+					float dist = PVector.dist(mouse, uvP[i]);
+					if (dist < 10) { // Set hover if within a certain distance threshold
+						hoverPoint = i;
+						break;
+					}
 				}
-			}
-			// Check if clicking inside the image
-			if (isMouseInsideImage(mouse)) {
-				movingImage = true;
-				initialMousePos = new PVector(x, y);
-				initialCorners = new PVector[4];
-				for (int i = 0; i < 4; i++) {
-					initialCorners[i] = uvP[i].copy(); // Store initial corners
+				// Check if clicking inside the image
+				if (isMouseInsideImage(mouse)) {
+					movingImage = true;
+					initialMousePos = new PVector(x, y);
+					initialCorners = new PVector[4];
+					for (int i = 0; i < 4; i++) {
+						initialCorners[i] = uvP[i].copy(); // Store initial corners
+					}
 				}
+			} else {
+				for (int i = 0; i < xyP.length; i++) {
+					float dist = PVector.dist(mouse, xyP[i]);
+					if (dist < 10) { // Set hover if within a certain distance threshold
+						hoverPoint = i;
+						break;
+					}
+				}
+
 			}
 		}
 	}
 
 	// Helper method to check if mouse is inside the quadrilateral formed by uvP[]
 	private boolean isMouseInsideImage(PVector mouse) {
-	    float minX = Math.min(Math.min(uvP[0].x, uvP[1].x), Math.min(uvP[2].x, uvP[3].x));
-	    float maxX = Math.max(Math.max(uvP[0].x, uvP[1].x), Math.max(uvP[2].x, uvP[3].x));
-	    float minY = Math.min(Math.min(uvP[0].y, uvP[1].y), Math.min(uvP[2].y, uvP[3].y));
-	    float maxY = Math.max(Math.max(uvP[0].y, uvP[1].y), Math.max(uvP[2].y, uvP[3].y));
+		float minX = Math.min(Math.min(uvP[0].x, uvP[1].x), Math.min(uvP[2].x, uvP[3].x));
+		float maxX = Math.max(Math.max(uvP[0].x, uvP[1].x), Math.max(uvP[2].x, uvP[3].x));
+		float minY = Math.min(Math.min(uvP[0].y, uvP[1].y), Math.min(uvP[2].y, uvP[3].y));
+		float maxY = Math.max(Math.max(uvP[0].y, uvP[1].y), Math.max(uvP[2].y, uvP[3].y));
 
-	    return mouse.x > minX && mouse.x < maxX && mouse.y > minY && mouse.y < maxY;
+		return mouse.x > minX && mouse.x < maxX && mouse.y > minY && mouse.y < maxY;
 	}
-	
+
 	// Function to move the hovered point when dragging
 	public void moveHoverPoint(float x, float y) {
-	    if (hoverPoint != -1) {
-	        uvP[hoverPoint] = new PVector(x, y); // Update in Processing coordinates
-	        uvN[hoverPoint] = Pixel2Nornal(uvP[hoverPoint]); // Convert to normalized coordinates for the shader
-	        updateHomography(xyN, uvN);
-	    } else if (movingImage) {
-	        PVector delta = new PVector(x - initialMousePos.x, y - initialMousePos.y);
-	        for (int i = 0; i < 4; i++) {
-	            uvP[i] = PVector.add(initialCorners[i], delta);
-	            uvN[i] = Pixel2Nornal(uvP[i]);
-	        }
-	        updateHomography(xyN, uvN);
-	    }
+		if (!checkInput) {
+			if (hoverPoint != -1) {
+				uvP[hoverPoint] = new PVector(x, y); // Update in Processing coordinates
+				uvN[hoverPoint] = Pixel2Nornal(uvP[hoverPoint]); // Convert to normalized coordinates for the shader
+				updateHomography(xyN, uvN);
+			} else if (movingImage) {
+				PVector delta = new PVector(x - initialMousePos.x, y - initialMousePos.y);
+				for (int i = 0; i < 4; i++) {
+					uvP[i] = PVector.add(initialCorners[i], delta);
+					uvN[i] = Pixel2Nornal(uvP[i]);
+				}
+				updateHomography(xyN, uvN);
+			}
+		} else {
+			if (hoverPoint != -1) {
+				xyP[hoverPoint] = new PVector(x, y); // Update in Processing coordinates
+				xyN[hoverPoint] = Pixel2Nornal(xyP[hoverPoint]); // Convert to normalized coordinates for the shader
+				updateHomography(xyN, uvN);
+			}
+		}
 	}
 
-
 	public void mouseReleased() {
-	    movingImage = false;
+		movingImage = false;
 	}
 
 	public void save() {

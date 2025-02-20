@@ -5,7 +5,7 @@ import processing.opengl.PGraphics2D;
 
 public class ResizablePanel {
     private PApplet p;
-    private float x, y, w, h;
+    public float x, y, w, h;
     private PGraphics2D panelGraphics; // Each panel has its own PGraphics2D
 
     public ResizablePanel(PApplet p, float x, float y, float w, float h) {
@@ -35,8 +35,8 @@ public class ResizablePanel {
         panelGraphics.beginDraw();
         panelGraphics.background(200); // Example background
         panelGraphics.fill(0);
-        panelGraphics.textAlign(PApplet.CENTER, PApplet.CENTER);
-        panelGraphics.text("Panel", w / 2, h / 2); // Example placeholder text
+        //panelGraphics.textAlign(PApplet.CENTER, PApplet.CENTER);
+        //panelGraphics.text("Panel", w / 2, h / 2); // Example placeholder text
         panelGraphics.endDraw();
     }
 
