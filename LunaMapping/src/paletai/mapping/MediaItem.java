@@ -13,6 +13,7 @@ public class MediaItem {
 	private PImage thumbnail;
 	private boolean isVideo;
 	private boolean loaded = false;
+	private boolean isLooping = false;
 	private Movie movie;
 	private PGraphics2D mediaCanvas;
 	private VidMap vidMap; // Homography transformation
@@ -99,15 +100,15 @@ public class MediaItem {
 	public void toggleCalibration() {
 		vidMap.toggleCalibration();
 	}
-	
+
 	public void offCalibration() {
 		vidMap.offCalibration();
 	}
-	
+
 	public void onCalibration() {
 		vidMap.onCalibration();
 	}
-	
+
 	public void toggleInput() {
 		vidMap.checkInput = !vidMap.checkInput;
 		System.out.println("checkInput = " + vidMap.checkInput);
@@ -156,9 +157,9 @@ public class MediaItem {
 
 	// Render media using VidMap transformation
 	public void render() {
-		//System.out.println("Rendering file: " + fileName);
+		// System.out.println("Rendering file: " + fileName);
 		mediaCanvas.beginDraw();
-		//System.out.println("All good " + fileName);
+		// System.out.println("All good " + fileName);
 		mediaCanvas.background(0); // Clear previous frame
 
 		if (isVideo && movie.available()) {
@@ -183,7 +184,7 @@ public class MediaItem {
 
 		// Apply homography transformation using VidMap
 		vidMap.show(mediaCanvas);
-		
+
 		loaded = true;
 	}
 
@@ -193,14 +194,24 @@ public class MediaItem {
 			if (movie.isPlaying()) {
 				movie.pause();
 			} else {
-				movie.loop();
+				playMedia();
 			}
 		}
 	}
 
+	public void toggleLoop() {
+		isLooping = !isLooping;
+		System.out.println("isLooping = " + isLooping);
+	}
+	
 	public void playMedia() {
 		if (isVideo && movie != null && !movie.isPlaying()) {
-			movie.loop();
+			if (isLooping) {
+				movie.loop();
+			} else {
+				movie.play();
+			}
+
 		}
 	}
 
@@ -212,13 +223,13 @@ public class MediaItem {
 			mediaCanvas.endDraw();
 		}
 	}
-	
+
 	public void muteMedia() {
 		if (isVideo && movie != null && !movie.isPlaying()) {
 			movie.volume(0);
 		}
 	}
-	
+
 	// Getters
 	public String getFilePath() {
 		return filePath;

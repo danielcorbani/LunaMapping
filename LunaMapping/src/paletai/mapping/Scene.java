@@ -60,6 +60,17 @@ public class Scene {
 		}
 	}
 
+	public void offCalibration() {
+		if (activeMedia != null) {
+			activeMedia.offCalibration();
+		}
+	}
+
+	public void onCalibration() {
+		if (activeMedia != null) {
+			activeMedia.onCalibration();
+		}
+	}
 	// **🔹 Mouse Interaction for Calibration**
 	public void moveHoverPoint(int mouseX, int mouseY) {
 		if (activeMedia != null) {
