@@ -22,7 +22,7 @@ public class MediaItem {
 	public MediaItem(PApplet p, String filePath, int sceneIndex) {
 		this.p = p;
 		this.filePath = filePath;
-		this.fileName = extractFileName(filePath) + "scene" + String.valueOf(sceneIndex); // NEED TO CHECK THIS!!!!!
+		this.fileName = extractFileName(filePath) + "_scene" + String.valueOf(sceneIndex); // NEED TO CHECK THIS!!!!!
 		// System.out.println("fileName = " + fileName);
 		this.isVideo = isVideoFile(filePath);
 		this.mediaCanvas = (PGraphics2D) p.createGraphics(p.width, p.height, PConstants.P2D);
@@ -133,7 +133,12 @@ public class MediaItem {
 	public void loadHomography() {
 		vidMap.load();
 	}
-
+	
+	public void resetHomography() {
+		vidMap.resetHomography();
+		applyAspectRatioCorrection(mediaWidth, mediaHeight);
+	}
+	
 	// Extracts the file name from the full path
 	private String extractFileName(String path) {
 		File file = new File(path);

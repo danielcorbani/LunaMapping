@@ -90,9 +90,10 @@ public class VidMap {
 
 	}
 
-	private void makeGrid(PVector[] corners) {
+	private void makeGrid(PVector[] corners,boolean isInput) {
 		int gridSize = 10; // Number of cells in the grid
 		pgCanvas.stroke(0, 255, 0);
+		if (isInput)pgCanvas.stroke(0, 0, 255);
 	    pgCanvas.strokeWeight(1);
 	    pgCanvas.noFill();
 	    
@@ -124,27 +125,8 @@ public class VidMap {
 
 		if (calibrate) {
 			// Draw the green grid inside pgCanvas
-//			int gridSize = 10; // Number of cells in the grid
-//			pgCanvas.stroke(0, 255, 0);
-//			pgCanvas.strokeWeight(1);
-//			pgCanvas.noFill();
 			
-			if (!checkInput) {
-				makeGrid(xyP);
-			} else {
-				makeGrid(xyP);
-			}
-//			for (int i = 0; i <= gridSize; i++) {
-//				if (!checkInput) {
-//					float x = i * (pgCanvas.width / (float) gridSize);
-//					pgCanvas.line(x, 0, x, pgCanvas.height); // Vertical lines
-//					float y = i * (pgCanvas.height / (float) gridSize);
-//					pgCanvas.line(0, y, pgCanvas.width, y); // Horizontal lines
-//					makeGrid(xyP);
-//				} else {
-//					makeGrid(xyP);
-//				}
-//			}
+			makeGrid(xyP,checkInput);
 		}
 
 		pgCanvas.endDraw();
@@ -173,7 +155,7 @@ public class VidMap {
 			} else {
 				// Highlight the corners on the main canvas
 				p.beginShape();
-				p.stroke(0, 255, 0);
+				p.stroke(0, 0, 255);
 				p.strokeWeight(2);
 				p.noFill();
 				for (int i = 0; i < uvN.length; i++) {
@@ -241,7 +223,7 @@ public class VidMap {
 					}
 				}
 				// Check if clicking inside the image
-				if (isMouseInsideImage(mouse)) {
+				if (isMouseInsideImage(mouse, uvP)) {
 					movingImage = true;
 					initialMousePos = new PVector(x, y);
 					initialCorners = new PVector[4];
@@ -257,17 +239,25 @@ public class VidMap {
 						break;
 					}
 				}
-
+				// Check if clicking inside the image
+				if (isMouseInsideImage(mouse, xyP)) {
+					movingImage = true;
+					initialMousePos = new PVector(x, y);
+					initialCorners = new PVector[4];
+					for (int i = 0; i < 4; i++) {
+						initialCorners[i] = xyP[i].copy(); // Store initial corners
+					}
+				}
 			}
 		}
 	}
 
 	// Helper method to check if mouse is inside the quadrilateral formed by uvP[]
-	private boolean isMouseInsideImage(PVector mouse) {
-		float minX = Math.min(Math.min(uvP[0].x, uvP[1].x), Math.min(uvP[2].x, uvP[3].x));
-		float maxX = Math.max(Math.max(uvP[0].x, uvP[1].x), Math.max(uvP[2].x, uvP[3].x));
-		float minY = Math.min(Math.min(uvP[0].y, uvP[1].y), Math.min(uvP[2].y, uvP[3].y));
-		float maxY = Math.max(Math.max(uvP[0].y, uvP[1].y), Math.max(uvP[2].y, uvP[3].y));
+	private boolean isMouseInsideImage(PVector mouse,PVector[] cc) {
+		float minX = Math.min(Math.min(cc[0].x, cc[1].x), Math.min(cc[2].x, cc[3].x));
+		float maxX = Math.max(Math.max(cc[0].x, cc[1].x), Math.max(cc[2].x, cc[3].x));
+		float minY = Math.min(Math.min(cc[0].y, cc[1].y), Math.min(cc[2].y, cc[3].y));
+		float maxY = Math.max(Math.max(cc[0].y, cc[1].y), Math.max(cc[2].y, cc[3].y));
 
 		return mouse.x > minX && mouse.x < maxX && mouse.y > minY && mouse.y < maxY;
 	}
@@ -291,6 +281,13 @@ public class VidMap {
 			if (hoverPoint != -1) {
 				xyP[hoverPoint] = new PVector(x, y); // Update in Processing coordinates
 				xyN[hoverPoint] = Pixel2Nornal(xyP[hoverPoint]); // Convert to normalized coordinates for the shader
+				updateHomography(xyN, uvN);
+			} else if (movingImage) {
+				PVector delta = new PVector(x - initialMousePos.x, y - initialMousePos.y);
+				for (int i = 0; i < 4; i++) {
+					xyP[i] = PVector.add(initialCorners[i], delta);
+					xyN[i] = Pixel2Nornal(xyP[i]);
+				}
 				updateHomography(xyN, uvN);
 			}
 		}
@@ -340,7 +337,53 @@ public class VidMap {
 		}
 	}
 
+	public void load(String Object2Copy) {
+		try {
+			XML root = p.loadXML("data/homography.xml");
+			if (root == null) {
+				PApplet.println("No homography file found.");
+				return;
+			}
+
+			// Find the node for this object
+			XML objectNode = root.getChild(Object2Copy);
+			if (objectNode == null) {
+				PApplet.println("No data found for " + Object2Copy);
+				return;
+			}
+
+			// Load xyP points
+			XML xyPNode = objectNode.getChild("xyP");
+			XML[] xyPPoints = xyPNode.getChildren("point");
+			for (int i = 0; i < xyPPoints.length; i++) {
+				xyP[i] = new PVector(xyPPoints[i].getFloat("x"), xyPPoints[i].getFloat("y"));
+			}
+
+			// Load uvP points
+			XML uvPNode = objectNode.getChild("uvP");
+			XML[] uvPPoints = uvPNode.getChildren("point");
+			for (int i = 0; i < uvPPoints.length; i++) {
+				uvP[i] = new PVector(uvPPoints[i].getFloat("x"), uvPPoints[i].getFloat("y"));
+			}
+
+			// Update normalized coordinates and homography
+			for (int i = 0; i < xyP.length; i++) {
+				xyN[i] = Pixel2Nornal(xyP[i]);
+				uvN[i] = Pixel2Nornal(uvP[i]);
+			}
+			updateHomography(xyN, uvN);
+			save();
+			PApplet.println("Homography for " + objectName + " loaded.");
+		} catch (Exception e) {
+			PApplet.println("Failed to load homography: " + e.getMessage());
+		}
+	}
+	
 	public void load() {
+		load(objectName);
+	}
+	
+	public void loadXML() {
 		try {
 			XML root = p.loadXML("data/homography.xml");
 			if (root == null) {
@@ -381,5 +424,4 @@ public class VidMap {
 			PApplet.println("Failed to load homography: " + e.getMessage());
 		}
 	}
-
 }
