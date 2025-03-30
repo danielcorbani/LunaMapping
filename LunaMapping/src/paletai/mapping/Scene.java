@@ -52,7 +52,11 @@ public class Scene {
 			System.out.println("Switched to MediaItem: " + activeMedia.getFileName());
 		}
 	}
-
+	
+	public void toggleInput() {
+		activeMedia.toggleInput();
+	}
+	
 	// **🔹 Toggle Calibration for Active Media**
 	public void toggleCalibration() {
 		if (activeMedia != null) {
@@ -115,5 +119,17 @@ public class Scene {
 		for (MediaItem item : mediaItems) {
 			item.loadHomography(); // Start video when scene is active
 		}
+	}
+	
+	public void toggleLoop() {
+		this.isActive = isActive;
+		//loadAll();
+		for (MediaItem item : mediaItems) {
+			if (this.isActive) {
+				item.toggleLoop(); // Start video when scene is active
+			}
+		}
+		//System.out.println("Setting Scene Active: " + this.isActive);
+		
 	}
 }

@@ -13,12 +13,12 @@ public class MediaItem {
 	private PImage thumbnail;
 	private boolean isVideo;
 	private boolean loaded = false;
-	private boolean isLooping = false;
+	private boolean isLooping = true;
 	private Movie movie;
 	private PGraphics2D mediaCanvas;
 	private VidMap vidMap; // Homography transformation
 	public int mediaWidth, mediaHeight;
-
+	
 	public MediaItem(PApplet p, String filePath, int sceneIndex) {
 		this.p = p;
 		this.filePath = filePath;

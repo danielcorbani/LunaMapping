@@ -372,7 +372,7 @@ public class VidMap {
 				uvN[i] = Pixel2Nornal(uvP[i]);
 			}
 			updateHomography(xyN, uvN);
-			save();
+			//save();
 			PApplet.println("Homography for " + objectName + " loaded.");
 		} catch (Exception e) {
 			PApplet.println("Failed to load homography: " + e.getMessage());
