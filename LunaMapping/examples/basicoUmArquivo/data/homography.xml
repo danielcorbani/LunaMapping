@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<homographies>
+  <quadro.jpgscene1>
+    <xyP>
+      <point x="0.0" y="0.0"/>
+      <point x="720.0" y="0.0"/>
+      <point x="720.0" y="540.0"/>
+      <point x="0.0" y="540.0"/>
+    </xyP>
+    <uvP>
+      <point x="484.0" y="243.0"/>
+      <point x="592.0" y="240.0"/>
+      <point x="598.0" y="435.0"/>
+      <point x="483.0" y="435.0"/>
+    </uvP>
+  </quadro.jpgscene1>
+  <autorretrato.pngscene1>
+    <xyP>
+      <point x="0.0" y="0.0"/>
+      <point x="720.0" y="0.0"/>
+      <point x="720.0" y="540.0"/>
+      <point x="0.0" y="540.0"/>
+    </xyP>
+    <uvP>
+      <point x="359.0" y="263.0"/>
+      <point x="445.0" y="262.0"/>
+      <point x="445.0" y="415.0"/>
+      <point x="359.0" y="413.0"/>
+    </uvP>
+  </autorretrato.pngscene1>
+  <autorretrato.png_scene1>
+    <xyP>
+      <point x="0.0" y="0.0"/>
+      <point x="1920.0" y="0.0"/>
+      <point x="1920.0" y="1080.0"/>
+      <point x="0.0" y="1080.0"/>
+    </xyP>
+    <uvP>
+      <point x="716.0" y="525.0"/>
+      <point x="884.0" y="521.0"/>
+      <point x="886.0" y="818.0"/>
+      <point x="712.0" y="825.0"/>
+    </uvP>
+  </autorretrato.png_scene1>
+  <quadro.jpg_scene1>
+    <xyP>
+      <point x="0.0" y="0.0"/>
+      <point x="720.0" y="0.0"/>
+      <point x="720.0" y="540.0"/>
+      <point x="0.0" y="540.0"/>
+    </xyP>
+    <uvP>
+      <point x="484.0" y="242.0"/>
+      <point x="595.0" y="240.0"/>
+      <point x="596.0" y="433.0"/>
+      <point x="483.0" y="437.0"/>
+    </uvP>
+  </quadro.jpg_scene1>
+</homographies>

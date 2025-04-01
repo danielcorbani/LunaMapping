@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<homographies>
+  <cena8E.movscene2>
+    <xyP>
+      <point x="0.0" y="0.0"/>
+      <point x="960.0" y="0.0"/>
+      <point x="960.0" y="540.0"/>
+      <point x="0.0" y="540.0"/>
+    </xyP>
+    <uvP>
+      <point x="546.0" y="257.0"/>
+      <point x="641.0" y="255.0"/>
+      <point x="646.0" y="431.0"/>
+      <point x="547.0" y="431.0"/>
+    </uvP>
+  </cena8E.movscene2>
+  <cena8D.movscene2>
+    <xyP>
+      <point x="0.0" y="0.0"/>
+      <point x="960.0" y="0.0"/>
+      <point x="960.0" y="540.0"/>
+      <point x="0.0" y="540.0"/>
+    </xyP>
+    <uvP>
+      <point x="290.0" y="252.0"/>
+      <point x="385.0" y="256.0"/>
+      <point x="386.0" y="427.0"/>
+      <point x="293.0" y="425.0"/>
+    </uvP>
+  </cena8D.movscene2>
+  <PrecipicioGrande.movscene3>
+    <xyP>
+      <point x="0.0" y="0.0"/>
+      <point x="960.0" y="0.0"/>
+      <point x="960.0" y="540.0"/>
+      <point x="0.0" y="540.0"/>
+    </xyP>
+    <uvP>
+      <point x="560.0" y="257.0"/>
+      <point x="676.0" y="260.0"/>
+      <point x="678.0" y="434.0"/>
+      <point x="563.0" y="433.0"/>
+    </uvP>
+  </PrecipicioGrande.movscene3>
+  <Sonhos.movscene3>
+    <xyP>
+      <point x="0.0" y="0.0"/>
+      <point x="960.0" y="0.0"/>
+      <point x="960.0" y="540.0"/>
+      <point x="0.0" y="540.0"/>
+    </xyP>
+    <uvP>
+      <point x="281.0" y="258.0"/>
+      <point x="549.0" y="255.0"/>
+      <point x="559.0" y="431.0"/>
+      <point x="301.0" y="421.0"/>
+    </uvP>
+  </Sonhos.movscene3>
+  <sunset.mp4_scene2>
+    <xyP>
+      <point x="0.0" y="0.0"/>
+      <point x="960.0" y="0.0"/>
+      <point x="960.0" y="540.0"/>
+      <point x="0.0" y="540.0"/>
+    </xyP>
+    <uvP>
+      <point x="147.0" y="177.0"/>
+      <point x="795.0" y="176.0"/>
+      <point x="792.0" y="475.0"/>
+      <point x="150.0" y="470.0"/>
+    </uvP>
+  </sunset.mp4_scene2>
+  <bailarina.mp4_scene2>
+    <xyP>
+      <point x="0.0" y="0.0"/>
+      <point x="960.0" y="0.0"/>
+      <point x="960.0" y="540.0"/>
+      <point x="0.0" y="540.0"/>
+    </xyP>
+    <uvP>
+      <point x="630.0" y="176.0"/>
+      <point x="796.0" y="176.0"/>
+      <point x="794.0" y="472.0"/>
+      <point x="634.0" y="470.0"/>
+    </uvP>
+  </bailarina.mp4_scene2>
+  <fumaca.mp4_scene3>
+    <xyP>
+      <point x="0.0" y="0.0"/>
+      <point x="960.0" y="0.0"/>
+      <point x="960.0" y="540.0"/>
+      <point x="0.0" y="540.0"/>
+    </xyP>
+    <uvP>
+      <point x="141.0" y="174.0"/>
+      <point x="795.0" y="166.0"/>
+      <point x="777.0" y="468.0"/>
+      <point x="142.0" y="471.0"/>
+    </uvP>
+  </fumaca.mp4_scene3>
+  <silhueta.mp4_scene3>
+    <xyP>
+      <point x="352.0" y="214.0"/>
+      <point x="627.0" y="206.0"/>
+      <point x="628.0" y="445.0"/>
+      <point x="353.0" y="442.0"/>
+    </xyP>
+    <uvP>
+      <point x="135.0" y="309.0"/>
+      <point x="286.0" y="308.0"/>
+      <point x="292.0" y="469.0"/>
+      <point x="132.0" y="469.0"/>
+    </uvP>
+  </silhueta.mp4_scene3>
+  <tchau.mp4_scene4>
+    <xyP>
+      <point x="0.0" y="0.0"/>
+      <point x="960.0" y="0.0"/>
+      <point x="960.0" y="540.0"/>
+      <point x="0.0" y="540.0"/>
+    </xyP>
+    <uvP>
+      <point x="365.0" y="253.0"/>
+      <point x="566.0" y="253.0"/>
+      <point x="565.0" y="470.0"/>
+      <point x="362.0" y="469.0"/>
+    </uvP>
+  </tchau.mp4_scene4>
+</homographies>
