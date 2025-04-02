@@ -4,30 +4,61 @@ import processing.core.*;
 import processing.opengl.*;
 import processing.data.XML;
 
+/**
+ * A class for managing video mapping transformations with interactive calibration.
+ * Handles homography calculations, shader applications, and provides UI for point adjustment.
+ * 
+ * <p>This class combines {@link MathHomography} calculations with Processing's OpenGL rendering
+ * pipeline to create perspective-corrected video mappings. It supports:</p>
+ * <ul>
+ *   <li>Interactive calibration with draggable control points</li>
+ *   <li>Real-time homography updates</li>
+ *   <li>Serialization of mapping configurations</li>
+ *   <li>Visual feedback during calibration</li>
+ * </ul>
+ * 
+ * @author Daniel Corbani
+ * @version 1.0
+ * @see MathHomography
+ * @see PShader
+ */
 public class VidMap {
+	/** The parent Processing applet */
 	PApplet p;
+	/** Shader for applying homography transformations */
 	PShader mapInOut;
+	/** Graphics buffers for input and output */
 	PGraphics2D pgCanvas, pgInput;
-
+	/** Normalized coordinates for shader (0-1 range) */
 	PVector[] xyN = new PVector[4]; // Normalized coordinates for Shader
 	PVector[] uvN = new PVector[4]; // Normalized coordinates for Shader
+	/** Pixel coordinates for Processing display */
 	PVector[] xyP = new PVector[4]; // Pixel coordinates for Processing (for drawing)
 	PVector[] uvP = new PVector[4]; // Pixel coordinates for Processing (for drawing)
-
+	/** Math utility for homography calculations */
 	MathHomography mat;
+	/** 3D matrix for shader transformations */
 	PMatrix3D H;
-
+	/** Calibration state flags */
 	boolean calibrate = false;
-	public boolean checkInput = false; // to be reverted, if needed
+	public boolean checkInput = false;
+	/** Point interaction tracking */
 	int hoverPoint = -1; // Point index to highlight when hovering
 	int selectedPoint = -1; // New variable to store the selected point for live adjustment
-
+	
+	/** Unique identifier for this mapping */
 	String objectName; // Unique name for the VidMap object
-
+	/** Image dragging state */
 	private boolean movingImage = false;
 	private PVector initialMousePos;
 	private PVector[] initialCorners;
-
+	
+	/**
+     * Constructs a new VidMap instance.
+     * 
+     * @param p The parent Processing applet
+     * @param name Unique identifier for this mapping
+     */
 	public VidMap(PApplet p, String name) {
 		this.p = p;
 		this.objectName = name;
@@ -39,7 +70,11 @@ public class VidMap {
 		mat = new MathHomography();
 		resetHomography();
 	}
-
+	
+	/**
+     * Resets the homography to identity transformation.
+     * Initializes all points to the corners of the display.
+     */
 	public void resetHomography() {
 		// Initialize Processing points in pixel coordinates
 		xyP[0] = new PVector(0, 0);
@@ -59,10 +94,16 @@ public class VidMap {
 			uvN[i] = Pixel2Nornal(uvP[i]);
 		}
 
-		// mat = new MathHomography();
 		updateHomography(xyN, uvN);
 	}
-
+	
+	/**
+     * Updates the homography matrix from pixel-space coordinates.
+     * 
+     * @param xyPP Source points in pixel coordinates
+     * @param uvPP Destination points in pixel coordinates
+     * @throws IllegalArgumentException If arrays don't contain exactly 4 points
+     */
 	public void updateHomographyFromPixel(PVector[] xyPP, PVector[] uvPP) {
 		for (int i = 0; i < 4; i++) {
 			xyP[i] = xyPP[i];
@@ -71,10 +112,15 @@ public class VidMap {
 			uvN[i] = Pixel2Nornal(uvPP[i]);
 		}
 
-		// mat = new MathHomography();
 		updateHomography(xyN, uvN);
 	}
-
+	
+	/**
+     * Updates the homography transformation from normalized coordinates.
+     * 
+     * @param xyNew Source points in normalized coordinates (0-1)
+     * @param uvNew Destination points in normalized coordinates (0-1)
+     */
 	public void updateHomography(PVector[] xyNew, PVector[] uvNew) {
 
 		for (int i = 0; i < uvN.length; i++) {
@@ -113,14 +159,17 @@ public class VidMap {
 	    }
 	}
 	
+	/**
+     * Renders the mapped content to the screen.
+     * 
+     * @param input The graphics buffer to transform and display
+     */
 	public void show(PGraphics2D input) {
-		// System.out.println("VidMap Rendering...");
 		if (pgCanvas == null) {
 			System.out.println("Initializing pgCanvas late...");
 			pgCanvas = (PGraphics2D) p.createGraphics(p.width, p.height, PConstants.P2D);
 		}
 		pgCanvas.beginDraw();
-		// System.out.println("before image");
 		pgCanvas.image(input, 0, 0, pgCanvas.width, pgCanvas.height);
 
 		if (calibrate) {
@@ -132,7 +181,7 @@ public class VidMap {
 		pgCanvas.endDraw();
 
 		if (!checkInput)
-			pgCanvas.filter(mapInOut); // to be reverted, if needed
+			pgCanvas.filter(mapInOut);
 		p.image(pgCanvas, 0, 0);
 
 		if (calibrate) {
@@ -183,15 +232,30 @@ public class VidMap {
 	public PGraphics2D getMediaCanvas() {
 		return pgCanvas;
 	}
-
+	
+	/**
+     * Converts pixel coordinates to normalized shader coordinates.
+     * 
+     * @param in Input point in pixel coordinates
+     * @return Point in normalized coordinates (0-1, Y inverted)
+     */
 	public PVector Pixel2Nornal(PVector in) {
 		return new PVector(in.x / p.width, 1.0f - (in.y / p.height)); // Normalize and invert Y-axis for shader
 	}
-
+	
+	/**
+     * Converts normalized coordinates back to pixel space.
+     * 
+     * @param in Input point in normalized coordinates
+     * @return Point in pixel coordinates
+     */
 	public PVector Nornal2Pixel(PVector in) {
 		return new PVector(in.x * p.width, (1.0f - in.y) * p.height); // Convert back to Processing coordinates
 	}
-
+	
+	/**
+     * Toggles calibration mode on/off.
+     */
 	public void toggleCalibration() {
 		calibrate = !calibrate;
 		System.out.println("calibrate " + objectName + "= " + calibrate);
@@ -207,7 +271,12 @@ public class VidMap {
 		System.out.println("calibrate " + objectName + "= " + calibrate);
 	}
 
-	// Function to check if mouse is near any point and set the hoverPoint
+	/**
+     * Checks if mouse is hovering over control points.
+     * 
+     * @param x Mouse x position
+     * @param y Mouse y position
+     */
 	public void checkHover(float x, float y) {
 		PVector mouse = new PVector(x, y); // Use Processing coordinates for checking hover
 		hoverPoint = -1; // Reset hover point
@@ -262,7 +331,12 @@ public class VidMap {
 		return mouse.x > minX && mouse.x < maxX && mouse.y > minY && mouse.y < maxY;
 	}
 
-	// Function to move the hovered point when dragging
+	/**
+     * Move control points.
+     * 
+     * @param x Mouse x position
+     * @param y Mouse y position
+     */
 	public void moveHoverPoint(float x, float y) {
 		if (!checkInput) {
 			if (hoverPoint != -1) {
@@ -296,7 +370,10 @@ public class VidMap {
 	public void mouseReleased() {
 		movingImage = false;
 	}
-
+	
+	/**
+     * Saves the current mapping configuration to XML.
+     */
 	public void save() {
 		try {
 			XML root = p.loadXML("data/homography.xml");
@@ -336,7 +413,12 @@ public class VidMap {
 			PApplet.println("Failed to save homography: " + e.getMessage());
 		}
 	}
-
+	
+	/**
+     * Loads a mapping configuration from XML.
+     * 
+     * @param Object2Copy Name of the configuration to load
+     */
 	public void load(String Object2Copy) {
 		try {
 			XML root = p.loadXML("data/homography.xml");

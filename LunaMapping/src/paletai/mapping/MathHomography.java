@@ -3,17 +3,44 @@ package paletai.mapping;
 import processing.core.PVector;
 import processing.core.PMatrix3D;
 
+/**
+ * A class for handling homography calculations and matrix operations.
+ * Provides methods for calculating homography matrices between two planes,
+ * matrix inversion, transposition, and conversion to Processing's PMatrix3D format.
+ * 
+ * @author Daniel Corbani
+ * @version 1.0
+ * @see <a href="https://en.wikipedia.org/wiki/Homography">Homography</a>
+ */
+
 public class MathHomography {
-
+	
+	/**
+     * The 3x3 homography matrix stored internally.
+     */
+	
 	float[][] hh;
-
+	
+	/**
+     * Constructs a MathHomography object initialized with an identity matrix.
+     */
 	public MathHomography() {
 		hh = new float[3][3];
 		for (int i = 0; i < 3; i++) {
 			hh[i][i] = 1;
 		}
 	}
-
+	
+	/**
+     * Calculates the homography matrix between two sets of 4 points (xy to uv),
+     * with coordinates normalized by width and height.
+     *
+     * @param xy Array of 4 source points (PVector)
+     * @param uv Array of 4 destination points (PVector)
+     * @param w Width used for coordinate normalization
+     * @param h Height used for coordinate normalization
+     * @return 3x3 homography matrix as float[][]
+     */
 	public float[][] calculateHomography(PVector[] xy, PVector[] uv, int w, int h) {
 		float x0 = xy[0].x / w;
 		float y0 = xy[0].y / h;
@@ -71,7 +98,15 @@ public class MathHomography {
 
 		return hh;
 	}
-
+	
+	/**
+     * Calculates the homography matrix between two sets of 4 points (xy to uv)
+     * using raw coordinates (not normalized).
+     *
+     * @param xy Array of 4 source points (PVector)
+     * @param uv Array of 4 destination points (PVector)
+     * @return 3x3 homography matrix as float[][]
+     */
 	public float[][] calculateHomography(PVector[] xy, PVector[] uv) {
 		float x0 = xy[0].x;
 		float y0 = xy[0].y;
@@ -129,7 +164,13 @@ public class MathHomography {
 
 		return hh;
 	}
-
+	
+	/**
+     * Performs Gauss-Jordan elimination on a matrix.
+     *
+     * @param m Input matrix to be processed
+     * @return The matrix in reduced row echelon form
+     */
 	public float[][] GaussJordan(float[][] m) {
 		float[][] out = copyMatrix(m);
 		for (int i = 0; i < out.length; i++) {
@@ -143,7 +184,13 @@ public class MathHomography {
 
 		return out;
 	}
-
+	
+	/**
+     * Creates a deep copy of a matrix.
+     *
+     * @param m Matrix to be copied
+     * @return A new matrix with identical values
+     */
 	public float[][] copyMatrix(float[][] m) {
 		float[][] out = new float[m.length][m[0].length];
 		for (int i = 0; i < out.length; i++) {
@@ -153,7 +200,8 @@ public class MathHomography {
 		}
 		return out;
 	}
-
+	
+	
 	private float[][] findNextNonZeroLine(float[][] m, int k) {
 		float num = m[k][k];
 		float[][] out = copyMatrix(m);
@@ -255,7 +303,13 @@ public class MathHomography {
 		}
 		return out;
 	}
-
+	
+	/**
+     * Converts a 3x3 homography matrix to a Processing PMatrix3D.
+     *
+     * @param hinv The 3x3 homography matrix
+     * @return PMatrix3D representation of the homography
+     */
 	public PMatrix3D getMatrix(float[][] hinv) {
 		PMatrix3D H = new PMatrix3D();
 		float h00 = hinv[0][0];
@@ -275,6 +329,14 @@ public class MathHomography {
 
 	}
 	
+	/**
+     * Calculates and returns the inverse homography matrix as PMatrix3D.
+     * This is useful for OpenGL coordinate transformations.
+     *
+     * @param xy Array of 4 source points
+     * @param uv Array of 4 destination points
+     * @return PMatrix3D representing the inverse homography
+     */
 	public PMatrix3D getMatrixInOut(PVector[] xy, PVector[] uv) {
 		float[][] h = calculateHomography(xy, uv);
 		h = invertMatrix(h); //the OpenGl coordinates requires the inverse Homography matrix
