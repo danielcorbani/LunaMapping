@@ -5,20 +5,56 @@ import processing.video.*;
 import processing.opengl.*;
 import java.io.File;
 
+/**
+ * A class for managing media items (images/videos) with homography transformation capabilities.
+ * Handles loading, playback, and rendering of media files with perspective correction.
+ * 
+ * <p>Key features include:</p>
+ * <ul>
+ *   <li>Automatic aspect ratio correction</li>
+ *   <li>Video playback control</li>
+ *   <li>Thumbnail generation</li>
+ *   <li>Homography transformation via {@link VidMap}</li>
+ *   <li>Media file management</li>
+ * </ul>
+ * 
+ * @author Daniel Corbani
+ * @version 1.0
+ * @see VidMap
+ * @see Movie
+ */
 public class MediaItem {
+	/** Parent Processing applet */
 	private PApplet p;
+	/** Full path to media file */
 	private String filePath;
-	private String fileName; // Extracted file name
+	/** Base filename with scene index */
+	private String fileName; 
+	/** Image object (for static images) */
 	private PImage img;
+	/** Thumbnail representation */
 	private PImage thumbnail;
+	/** Video flag */
 	private boolean isVideo;
 	private boolean loaded = false;
 	private boolean isLooping = true;
+	/** Video object (for movies) */
 	private Movie movie;
+	/** Graphics buffer for rendering */
 	private PGraphics2D mediaCanvas;
+	/** Homography transformation handler */
 	private VidMap vidMap; // Homography transformation
+	/** Original media dimensions */
 	public int mediaWidth, mediaHeight;
 	
+	/**
+     * Constructs a new MediaItem.
+     * 
+     * @param p Parent Processing applet
+     * @param filePath Path to media file
+     * @param sceneIndex Identifier for this media instance
+     * @throws RuntimeException If media file cannot be loaded
+     */
 	public MediaItem(PApplet p, String filePath, int sceneIndex) {
 		this.p = p;
 		this.filePath = filePath;
@@ -51,12 +87,22 @@ public class MediaItem {
 		if (mediaHeight != 0)
 			applyAspectRatioCorrection(mediaWidth, mediaHeight);
 	}
-
+	
+	/**
+     * Checks if media is successfully loaded.
+     * @return true if media is ready for display
+     */
 	public boolean isLoaded() {
 		return loaded;
 	}
 
-	// **🔹 Aspect Ratio Correction**
+	/**
+     * Adjusts media display to maintain aspect ratio.
+     * Automatically updates homography points to fit media properly.
+     * 
+     * @param mediaWidth Original media width
+     * @param mediaHeight Original media height
+     */
 	public void applyAspectRatioCorrection(int mediaWidth, int mediaHeight) {
 		float screenAspect = (float) p.width / p.height;
 		// System.out.println("screenAspect = " + screenAspect); //1.3334
@@ -160,7 +206,10 @@ public class MediaItem {
 		}
 	}
 
-	// Render media using VidMap transformation
+	/**
+     * Renders the media with homography transformation.
+     * Handles both static images and video playback.
+     */
 	public void render() {
 		// System.out.println("Rendering file: " + fileName);
 		mediaCanvas.beginDraw();
@@ -193,7 +242,10 @@ public class MediaItem {
 		loaded = true;
 	}
 
-	// Toggle video playback
+	/**
+     * Toggles video playback state.
+     * No effect on static images.
+     */
 	public void togglePlayback() {
 		if (isVideo) {
 			if (movie.isPlaying()) {
@@ -203,12 +255,18 @@ public class MediaItem {
 			}
 		}
 	}
-
+	
+	/**
+     * Toggles video loop mode.
+     */
 	public void toggleLoop() {
 		isLooping = !isLooping;
 		System.out.println("isLooping = " + isLooping);
 	}
-	
+	/**
+     * Starts media playback.
+     * For videos: begins playback according to loop mode.
+     */
 	public void playMedia() {
 		if (isVideo && movie != null && !movie.isPlaying()) {
 			if (isLooping) {
@@ -219,7 +277,11 @@ public class MediaItem {
 
 		}
 	}
-
+	
+	/**
+     * Stops media playback.
+     * For videos: stops and clears the display.
+     */
 	public void stopMedia() {
 		if (isVideo && movie != null && movie.isPlaying()) {
 			movie.stop();

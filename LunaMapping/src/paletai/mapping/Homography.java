@@ -2,15 +2,39 @@ package paletai.mapping;
 
 import processing.core.*;
 
+/**
+ * A class for applying homography transformations to points.
+ * Wraps the mathematical operations from {@link MathHomography} 
+ * with convenient point transformation methods.
+ * 
+ * <p>This class maintains both a homography matrix and its inverse,
+ * allowing efficient forward and backward transformations.</p>
+ * 
+ * @author Daniel Corbani
+ * @version 1.0
+ * @see MathHomography
+ */
 public class Homography {
 
-	// PApplet parent;
-
+	/**
+     * The 3x3 homography matrix
+     */
 	float[][] hh;
+	
+	/**
+     * The inverse of the homography matrix
+     */
 	float[][] hhInv;
-
+	
+	/**
+     * The math utility class for matrix operations
+     */
 	MathHomography mat;
-
+	
+	/**
+     * Constructs a Homography object initialized with identity matrices.
+     * Creates both the homography matrix and its inverse as identity matrices.
+     */
 	public Homography() {
 
 		mat = new MathHomography();
@@ -25,12 +49,25 @@ public class Homography {
 		}
 
 	}
-
+	
+	/**
+     * Updates the homography matrix and automatically calculates its inverse.
+     * 
+     * @param h The new 3x3 homography matrix to use
+     */
+	
 	public void updateHomographyMatrix(float[][] h) {
 		hh = mat.copyMatrix(h);
 		hhInv = mat.invertMatrix(h);
 	}
-
+	
+	/**
+     * Transforms a point using the inverse homography matrix.
+     * Applies the inverse perspective transformation: out = H⁻¹ * in.
+     * 
+     * @param in The input point to transform
+     * @return The inverse-transformed point
+     */
 	public PVector vectorTransform(PVector in) {
 		PVector out = new PVector(0, 0);
 
