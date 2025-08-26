@@ -47,7 +47,7 @@ void main(void) {
   //maps texture using ab coordinates; xyz are rgb colors
   //Manually specifying the level of detail can help reduce the aliasing caused by undersampling.
   float LOD = log2(max(1.0, length(uvk.xy / resolution)));
-  vec3 col = texture2DLod(texture, ab, LOD).xyz;
+  vec3 col = textureLod(texture, ab, LOD).xyz;
   
   //if (ab.x>=0.0 && ab.x<=1.0 && ab.y>=0.0 && ab.y<=1.0 ) {
   if (angle > 6.28 ) {
