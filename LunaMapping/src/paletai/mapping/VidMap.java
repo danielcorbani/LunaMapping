@@ -136,6 +136,11 @@ public class VidMap {
 
 	}
 
+	public void toggleInput() {
+		checkInput = !checkInput;
+		//System.out.println("checkInput = " + vidMap.checkInput);
+	}
+	
 	private void makeGrid(PVector[] corners,boolean isInput) {
 		int gridSize = 10; // Number of cells in the grid
 		pgCanvas.stroke(0, 255, 0);
