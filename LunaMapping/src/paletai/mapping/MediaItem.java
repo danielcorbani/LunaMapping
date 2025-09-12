@@ -1,21 +1,25 @@
 package paletai.mapping;
 
 import processing.core.*;
+import processing.data.XML;
 import processing.video.*;
 import processing.opengl.*;
 import java.io.File;
 
 /**
- * A class for managing media items (images/videos) with homography transformation capabilities.
- * Handles loading, playback, and rendering of media files with perspective correction.
+ * A class for managing media items (images/videos) with homography
+ * transformation capabilities. Handles loading, playback, and rendering of
+ * media files with perspective correction.
  * 
- * <p>Key features include:</p>
+ * <p>
+ * Key features include:
+ * </p>
  * <ul>
- *   <li>Automatic aspect ratio correction</li>
- *   <li>Video playback control</li>
- *   <li>Thumbnail generation</li>
- *   <li>Homography transformation via {@link VidMap}</li>
- *   <li>Media file management</li>
+ * <li>Automatic aspect ratio correction</li>
+ * <li>Video playback control</li>
+ * <li>Thumbnail generation</li>
+ * <li>Homography transformation via {@link VidMap}</li>
+ * <li>Media file management</li>
  * </ul>
  * 
  * @author Daniel Corbani
@@ -23,13 +27,15 @@ import java.io.File;
  * @see VidMap
  * @see Movie
  */
+
 public class MediaItem {
+	XML mediaXML, fromXML;
 	/** Parent Processing applet */
 	private PApplet p;
 	/** Full path to media file */
 	private String filePath;
 	/** Base filename with scene index */
-	private String fileName; 
+	private String fileName;
 	/** Image object (for static images) */
 	private PImage img;
 	/** Thumbnail representation */
@@ -43,33 +49,89 @@ public class MediaItem {
 	/** Graphics buffer for rendering */
 	private PGraphics2D mediaCanvas;
 	/** Homography transformation handler */
-	private VidMap vidMap; // Homography transformation
+	public VidMap vm; // Homography transformation
 	/** Original media dimensions */
 	public int mediaWidth, mediaHeight;
-	
+	public int assignedScreen, sceneIndex, mediaId;
+	int resolutionX, resolutionY;
+	public boolean calibrate = false;
+	public boolean fromxml = false;
+
 	/**
-     * Constructs a new MediaItem.
-     * 
-     * @param p Parent Processing applet
-     * @param filePath Path to media file
-     * @param sceneIndex Identifier for this media instance
-     * @throws RuntimeException If media file cannot be loaded
-     */
-	public MediaItem(PApplet p, String filePath, int sceneIndex) {
+	 * Constructs a new MediaItem.
+	 *
+	 * @param p          Parent Processing applet
+	 * @param filePath   Path to media file
+	 * @param sceneIndex Identifier for this media instance
+	 * @throws RuntimeException If media file cannot be loaded
+	 */
+
+	public MediaItem(PApplet p, String filePath, int sceneIndex, int screenIndex, int mediaId) {
+		PApplet.println("Start MediaItem");
 		this.p = p;
 		this.filePath = filePath;
-		this.fileName = extractFileName(filePath) + "_scene" + String.valueOf(sceneIndex); // NEED TO CHECK THIS!!!!!
-		// System.out.println("fileName = " + fileName);
+		// println("filePath " + filePath);
+		this.fileName = extractFileName(filePath); // NEED TO CHECK THIS!!!!!
+		// println(fileName);
 		this.isVideo = isVideoFile(filePath);
-		this.mediaCanvas = (PGraphics2D) p.createGraphics(p.width, p.height, PConstants.P2D);
-		this.vidMap = new VidMap(p, fileName); // Pass fileName to VidMap
+		this.sceneIndex = sceneIndex;
+		this.assignedScreen = screenIndex;
+		this.mediaId = mediaId;
+		this.vm = new VidMap(p, fileName); // Pass fileName to vm
+		initVariables();
+		toXML();
+		PApplet.println(mediaXML);
+		// initXML();
+	}
+
+	public MediaItem(PApplet p, XML mXML) {
+		PApplet.println("Initializing MediaItem from XML");
+		this.p = p;
+		// println(fromXML);
+		this.filePath = mXML.getString("name");
+		// println("filePath " + filePath);
+		this.fileName = extractFileName(filePath); // NEED TO CHECK THIS!!!!!
+		// println("fileName : " + fileName);
+		this.isVideo = isVideoFile(filePath);
+		this.sceneIndex = mXML.getInt("Scene");
+		this.assignedScreen = mXML.getInt("Screen");
+		this.mediaId = mXML.getInt("id");
+		this.vm = new VidMap(p, fileName); // Pass fileName to vm
+		this.fromXML = mXML;
+		PApplet.println("What is fromXML");
+		PApplet.println(this.fromXML);
+		PApplet.println("What is mediaXML");
+		PApplet.println(this.mediaXML);
+		initVariables();
+		PApplet.println("updating from XML");
+		updateFromXML(this.fromXML);
+		// PApplet.println(this.fromXML);
+		// toXML();
+		// initXML();
+		// PApplet.println(this.mediaXML);
+
+	}
+
+	void initXML() {
+		mediaXML = new XML("MediaItem");
+		mediaXML.setString("name", fileName);
+		mediaXML.setInt("Screen", assignedScreen);
+		mediaXML.setInt("Scene", sceneIndex);
+		mediaXML.setInt("id", mediaId);
+	}
+
+	void initVariables() {
+		PApplet.println("initVariables");
 		if (isVideo) {
+			PApplet.println("is video");
 			this.movie = new Movie(p, filePath);
 			movie.loop(); // Preload the movie (optional)
 			mediaWidth = movie.width;
 			mediaHeight = movie.height;
-			movie.stop();
+			// movie.stop();
+			PApplet.println("video loaded");
 		} else {
+			PApplet.println("MediaItem is picture");
 			img = p.loadImage(filePath);
 
 			if (img != null) {
@@ -78,33 +140,135 @@ public class MediaItem {
 				mediaWidth = img.width;
 				mediaHeight = img.height;
 			} else {
-				mediaWidth = p.width;
-				mediaHeight = p.height;
+				mediaWidth = 720;
+				mediaHeight = 480;
 			}
 		}
-		// Apply aspect ratio correction
-
-		if (mediaHeight != 0)
-			applyAspectRatioCorrection(mediaWidth, mediaHeight);
 	}
-	
+
+	void toXML() {
+		PApplet.println("MediaItem toXML");
+		initXML();
+		if (vm.xyN[0] != null)
+			mediaXML.addChild(arrayToXML("xyN", vm.xyN));
+		if (vm.xyN[0] != null)
+			mediaXML.addChild(arrayToXML("uvN", vm.uvN));
+		if (vm.xyN[0] != null)
+			mediaXML.addChild(arrayToXML("xyP", vm.xyP));
+		if (vm.xyN[0] != null)
+			mediaXML.addChild(arrayToXML("uvP", vm.uvP));
+	}
+
+	// Convert a PVector[] into XML
+	XML arrayToXML(String tag, PVector[] arr) {
+		XML arrayXML = new XML(tag);
+		for (int i = 0; i < arr.length; i++) {
+			XML v = new XML("point");
+			v.setInt("index", i);
+			// println(arr[i]);
+			v.setFloat("x", arr[i].x);
+			v.setFloat("y", arr[i].y);
+			arrayXML.addChild(v);
+		}
+		return arrayXML;
+	}
+
+	void activateFromXML() {
+		fromxml = true;
+		PApplet.println("activate fromxml: " + fromxml);
+	}
+
+	void updateFromXML(XML xml) {
+//		XML[] points = xml.getChildren();
+//		PApplet.println("points length: " + points.length);
+//		for (int i = 0; i < points.length; i++) {
+//			PApplet.println(points[i]);
+//		}
+		//PApplet.println(xml.getChild("xyN"));
+		PVector[] xyNew = arrayFromXML(xml.getChild("xyN"));
+		PVector[] uvNew = arrayFromXML(xml.getChild("uvN"));
+		vm.xyN = arrayFromXML(xml.getChild("xyN"));
+		vm.uvN = arrayFromXML(xml.getChild("uvN"));
+		vm.xyP = arrayFromXML(xml.getChild("xyP"));
+		vm.uvP = arrayFromXML(xml.getChild("uvP"));
+		mediaXML = xml;
+		updateHomography(xyNew, uvNew);
+		// toXML();
+	}
+
+	// Convert XML back into a PVector[]
+	PVector[] arrayFromXML(XML arrayXML) {
+		XML[] points = arrayXML.getChildren("point");
+		PVector[] arr = new PVector[points.length];
+		for (int i = 0; i < points.length; i++) {
+			PApplet.println(points[i].getName());
+			float x = points[i].getFloat("x");
+			float y = points[i].getFloat("y");
+			// float z = points[i].hasAttribute("z") ? points[i].getFloat("z") : 0;
+			arr[i] = new PVector(x, y);
+			PApplet.println(arr[i]);
+		}
+		return arr;
+	}
+
+	// 🔹 Update the *existing* XML with current array values
+	void updateXML() {
+//		if (mediaXML == null) {
+//			// println("Inside updateXML");
+//			toXML(); // build fresh if missing
+//			return;
+//		}
+		updateArrayXML(mediaXML.getChild("xyN"), vm.xyN);
+		updateArrayXML(mediaXML.getChild("uvN"), vm.uvN);
+		updateArrayXML(mediaXML.getChild("xyP"), vm.xyP);
+		updateArrayXML(mediaXML.getChild("uvP"), vm.uvP);
+	}
+
+	// Update an existing XML node with new PVector values
+	void updateArrayXML(XML arrayXML, PVector[] arr) {
+		XML[] points = arrayXML.getChildren("point");
+		for (int i = 0; i < arr.length && i < points.length; i++) {
+			// println(arrayXML.getName() + " " + points[i]);
+			points[i].setFloat("x", arr[i].x);
+			points[i].setFloat("y", arr[i].y);
+			// points[i].setFloat("z", arr[i].z);
+		}
+	}
+
+	void assignToDisplay(int w, int h, int screenIndex) {
+		PApplet.println("5");
+		this.resolutionX = w;
+		this.resolutionY = h;
+		this.mediaCanvas = (PGraphics2D) p.createGraphics(resolutionX, resolutionY, PConstants.P2D);
+		this.assignedScreen = screenIndex;
+		if (mediaHeight != 0) {
+			// println("mediaHeight = " + mediaHeight);
+			applyAspectRatioCorrection(mediaWidth, mediaHeight);
+		}
+		vm.assignToDisplay(resolutionX, resolutionY);
+		// this.fileName = extractFileName(filePath)+"C"+sceneIndex+"S"+screenIndex;
+		PApplet.println("Assign to Display");
+		// toXML();
+	}
+
 	/**
-     * Checks if media is successfully loaded.
-     * @return true if media is ready for display
-     */
+	 * Checks if media is successfully loaded.
+	 * 
+	 * @return true if media is ready for display
+	 */
 	public boolean isLoaded() {
 		return loaded;
 	}
 
 	/**
-     * Adjusts media display to maintain aspect ratio.
-     * Automatically updates homography points to fit media properly.
-     * 
-     * @param mediaWidth Original media width
-     * @param mediaHeight Original media height
-     */
+	 * Adjusts media display to maintain aspect ratio. Automatically updates
+	 * homography points to fit media properly.
+	 *
+	 * @param mediaWidth  Original media width
+	 * @param mediaHeight Original media height
+	 */
 	public void applyAspectRatioCorrection(int mediaWidth, int mediaHeight) {
-		float screenAspect = (float) p.width / p.height;
+		float screenAspect = (float) mediaCanvas.width / mediaCanvas.height;
 		// System.out.println("screenAspect = " + screenAspect); //1.3334
 		float mediaAspect = (float) mediaWidth / mediaHeight;
 		// System.out.println("mediaAspect = " + mediaAspect); //0.5625
@@ -113,78 +277,77 @@ public class MediaItem {
 
 		if (mediaAspect > screenAspect) {
 			// Fit to width
-			newWidth = p.width;
-			newHeight = p.width / mediaAspect;
-			offsetY = (p.height - newHeight) / 2;
+			newWidth = mediaCanvas.width;
+			newHeight = mediaCanvas.width / mediaAspect;
+			offsetY = (mediaCanvas.height - newHeight) / 2;
 		} else {
 			// Fit to height
-			newHeight = p.height;
-			newWidth = p.height * mediaAspect;
-			offsetX = (p.width - newWidth) / 2;
-
+			newHeight = mediaCanvas.height;
+			newWidth = mediaCanvas.height * mediaAspect;
+			offsetX = (mediaCanvas.width - newWidth) / 2;
 		}
 
 		// Update homography points
 		PVector[] uvP = { new PVector(offsetX, offsetY), new PVector(offsetX + newWidth, offsetY),
 				new PVector(offsetX + newWidth, offsetY + newHeight), new PVector(offsetX, offsetY + newHeight) };
 
-		PVector[] xyP = { new PVector(0, 0), new PVector(p.width, 0), new PVector(p.width, p.height),
-				new PVector(0, p.height) };
+		PVector[] xyP = { new PVector(0, 0), new PVector(mediaCanvas.width, 0),
+				new PVector(mediaCanvas.width, mediaCanvas.height), new PVector(0, mediaCanvas.height) };
 
-		vidMap.updateHomographyFromPixel(xyP, uvP);
+		vm.updateHomographyFromPixel(xyP, uvP);
+		if (loaded) {
+			updateFromXML(fromXML);
+		}
 	}
-	// **🔹 VidMap Wrapper Methods**
+	// **🔹 vm Wrapper Methods**
 
-	private void updateHomographyFromPixel(PVector[] xyPP, PVector[] uvPP) {
-		vidMap.updateHomographyFromPixel(xyPP, uvPP);
-	}
+//	private void updateHomographyFromPixel(PVector[] xyPP, PVector[] uvPP) {
+//		vm.updateHomographyFromPixel(xyPP, uvPP);
+//	}
 
 	public void updateHomography(PVector[] xyNew, PVector[] uvNew) {
-		vidMap.updateHomography(xyNew, uvNew);
+		vm.updateHomography(xyNew, uvNew);
 	}
 
 	public void toggleCalibration() {
-		vidMap.toggleCalibration();
+		vm.toggleCalibration();
+		this.calibrate = vm.calibrate;
 	}
 
 	public void offCalibration() {
-		vidMap.offCalibration();
+		vm.offCalibration();
+		this.calibrate = vm.calibrate;
 	}
 
 	public void onCalibration() {
-		vidMap.onCalibration();
+		vm.onCalibration();
+		this.calibrate = vm.calibrate;
 	}
 
 	public void toggleInput() {
-		vidMap.checkInput = !vidMap.checkInput;
-		System.out.println("checkInput = " + vidMap.checkInput);
+		vm.checkInput = !vm.checkInput;
+		// System.out.println("checkInput = " + vm.checkInput);
 	}
 
 	public void checkHover(float x, float y) {
-		vidMap.checkHover(x, y);
+		vm.checkHover(x, y);
 	}
 
 	public void moveHoverPoint(float x, float y) {
-		vidMap.moveHoverPoint(x, y);
+		vm.moveHoverPoint(x, y);
+		updateXML();
 	}
 
 	public void mouseReleased() {
-		vidMap.mouseReleased();
+		vm.mouseReleased();
+		updateXML();
 	}
 
-	public void saveHomography() {
-		vidMap.save();
-	}
-
-	public void loadHomography() {
-		vidMap.load();
-	}
-	
 	public void resetHomography() {
-		vidMap.resetHomography();
+		vm.resetHomography();
 		applyAspectRatioCorrection(mediaWidth, mediaHeight);
 	}
-	
+
 	// Extracts the file name from the full path
 	private String extractFileName(String path) {
 		File file = new File(path);
@@ -206,14 +369,17 @@ public class MediaItem {
 		}
 	}
 
+	public void setPreviewArea(float px, float py, float pw, float ph) {
+		vm.setPreviewArea(px, py, pw, ph);
+	}
+
 	/**
-     * Renders the media with homography transformation.
-     * Handles both static images and video playback.
-     */
+	 * Renders the media with homography transformation. Handles both static images
+	 * and video playback.
+	 */
 	public void render() {
-		// System.out.println("Rendering file: " + fileName);
+
 		mediaCanvas.beginDraw();
-		// System.out.println("All good " + fileName);
 		mediaCanvas.background(0); // Clear previous frame
 
 		if (isVideo && movie.available()) {
@@ -222,30 +388,34 @@ public class MediaItem {
 				mediaWidth = movie.width;
 				mediaHeight = movie.height;
 				applyAspectRatioCorrection(mediaWidth, mediaHeight);
+				if (fromxml == false && loaded == false) {
+					toXML();
+					PApplet.println("toXML inside render");
+				}
+				PApplet.println("Inside render");
+				loaded = true;
 			}
-
 		}
 		if (isVideo) {
 			mediaCanvas.image(movie, 0, 0, mediaCanvas.width, mediaCanvas.height);
-			if (thumbnail != null) {
-				mediaCanvas.image(thumbnail, 0, 0);
-			}
 		} else {
 			mediaCanvas.image(img, 0, 0, mediaCanvas.width, mediaCanvas.height);
+		}
+		if (fromxml == true && vm.xyN != null) {
+			PApplet.println("updating from XML");
+			updateFromXML(fromXML);
+			fromxml = false;
 		}
 
 		mediaCanvas.endDraw();
 
-		// Apply homography transformation using VidMap
-		vidMap.show(mediaCanvas);
-
-		loaded = true;
+		// Apply homography transformation using vm
+		vm.render(mediaCanvas);
 	}
 
 	/**
-     * Toggles video playback state.
-     * No effect on static images.
-     */
+	 * Toggles video playback state. No effect on static images.
+	 */
 	public void togglePlayback() {
 		if (isVideo) {
 			if (movie.isPlaying()) {
@@ -255,36 +425,39 @@ public class MediaItem {
 			}
 		}
 	}
-	
+
 	/**
-     * Toggles video loop mode.
-     */
+	 * Toggles video loop mode.
+	 */
 	public void toggleLoop() {
 		isLooping = !isLooping;
-		System.out.println("isLooping = " + isLooping);
+		// System.out.println("isLooping = " + isLooping);
 	}
+
 	/**
-     * Starts media playback.
-     * For videos: begins playback according to loop mode.
-     */
+	 * Starts media playback. For videos: begins playback according to loop mode.
+	 */
 	public void playMedia() {
-		if (isVideo && movie != null && !movie.isPlaying()) {
+		if (isVideo) {
+			stopMedia(); // clean up old one first
+			movie = new Movie(p, filePath);
 			if (isLooping) {
 				movie.loop();
 			} else {
 				movie.play();
 			}
-
 		}
 	}
-	
+
 	/**
-     * Stops media playback.
-     * For videos: stops and clears the display.
-     */
+	 * Stops media playback. For videos: stops and clears the display.
+	 */
 	public void stopMedia() {
-		if (isVideo && movie != null && movie.isPlaying()) {
+		if (isVideo && movie != null && movie != null) {
 			movie.stop();
+			movie.dispose(); // force GStreamer cleanup. It is crucial to force GStreamer to release the
+								// native pipeline before reusing
+			movie = null;
 			mediaCanvas.beginDraw();
 			mediaCanvas.clear();
 			mediaCanvas.endDraw();
@@ -315,6 +488,6 @@ public class MediaItem {
 	}
 
 	public PGraphics2D getMediaCanvas() {
-		return vidMap.getMediaCanvas();
+		return vm.getMediaCanvas();
 	}
 }

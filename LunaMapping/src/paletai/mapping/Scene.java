@@ -1,8 +1,9 @@
 package paletai.mapping;
 
-import processing.core.*;
-import processing.opengl.*;
 import java.util.ArrayList;
+
+import processing.core.PApplet;
+import processing.data.XML;
 
 /**
  * A class that manages a collection of MediaItems as a single scene.
@@ -21,187 +22,101 @@ import java.util.ArrayList;
  * @see MediaItem
  */
 public class Scene {
-	/** Parent Processing applet */
-	private PApplet p;
-	/** List of media items in this scene */
-	private ArrayList<MediaItem> mediaItems;
-	/** Currently active media for calibration */
-	private MediaItem activeMedia; // Track active media for calibration
-	/** Scene index identifier */
-	private int indexNum;
-	/** Scene activation state */
-	private boolean isActive = false;
-	/**
-     * Constructs a new Scene.
-     * 
-     * @param p Parent Processing applet
-     * @param index Unique identifier for this scene
-     */
-	public Scene(PApplet p, int index) {
-		this.p = p;
-		this.mediaItems = new ArrayList<>();
-		this.indexNum = index;
-	}
-	
-	/**
-     * Adds a media item to this scene.
-     * First added item becomes the default active media.
-     * 
-     * @param item MediaItem to add
-     */
-	public void addMediaItem(MediaItem item) {
-		mediaItems.add(item);
-		if (activeMedia == null) {
-			activeMedia = item; // Set first added item as active
-		}
-	}
-	
-	/**
-     * Checks if all media items in the scene are ready for display.
-     * 
-     * @return true if all media items report being loaded
-     */
-	public boolean isReady() {
-	    for (MediaItem item : mediaItems) {
-	        if (!item.isLoaded()) {
-	            return false; // Wait until all media items confirm they are loaded
-	        }
+	  int id;
+	  public ArrayList<MediaItem> mediaItems = new ArrayList<MediaItem>();
+	  public XML sceneXML;
+	  boolean isActive;
+	  int currentMediaCalibration = -1;
+
+	  public Scene(int id) {
+	    this.id = id;
+	    sceneXML = new XML("Scene");
+	    sceneXML.setInt("id", id);
+	    sceneXML.addChild("Medias");
+	    isActive = false;
+	  }
+
+	  Scene(XML scene) {
+	    id = scene.getInt("id");
+	    sceneXML = scene;
+	    isActive = false;
+	    
+	  }
+
+	  void render() {
+	    if (isActive) {
+	      for (MediaItem media : mediaItems) {
+	        media.render();
+	      }
 	    }
-	    return true;
-	}
+	  }
 
-	/**
-     * Renders all media items in the scene.
-     * Also handles hover detection for calibration points.
-     * 
-     * @param mouseX Current mouse X position
-     * @param mouseY Current mouse Y position
-     */
-	public void render(int mouseX, int mouseY) {
-		//System.out.println("Scene Render Running...");
-		for (MediaItem item : mediaItems) {
-			//System.out.println("Rendering MediaItem: " + item.getFileName());
-			item.checkHover(mouseX, mouseY); // Pass explicit mouse position
-			item.render();
-		}
+	  void addMedia(MediaItem newMedia) {
+	    mediaItems.add(newMedia);
+	    if (currentMediaCalibration <0) currentMediaCalibration = 0;
+	    if (!newMedia.fromxml) {
+	      XML mediasXML = sceneXML.getChild("Medias");
+	      mediasXML.addChild(newMedia.mediaXML);
+	      //println("new Media added successfully");
+	    }
+	  }
 
-	}
+	  void updateXML() {
+	    XML mediasParent = sceneXML.getChild("Medias");
+	    XML[] mediasXML = mediasParent.getChildren("MediaItem");
+	    for (XML mediaXML : mediasXML) {
+	      int i = mediaXML.getInt("id");
+	      for (MediaItem media : mediaItems) {
+	        if (media.mediaId == i) {
+	          mediasParent.removeChild(mediaXML);
+	          mediasParent.addChild(media.mediaXML);
+	        }
+	      }
+	    }
+	    //println("Scene XML updated?");
+	  }
 
-	/**
-     * Changes the active media item for calibration.
-     * 
-     * @param index Position of media item in the list
-     * @throws IndexOutOfBoundsException if index is invalid
-     */
-	public void switchActiveMedia(int index) {
-		if (index >= 0 && index < mediaItems.size()) {
-			activeMedia = mediaItems.get(index);
-			System.out.println("Switched to MediaItem: " + activeMedia.getFileName());
-		}
-	}
-	/**
-     * Toggles the input mode for the active media's calibration.
-     */
-	public void toggleInput() {
-		activeMedia.toggleInput();
-	}
-	
-	/**
-     * Toggles calibration mode for the active media.
-     */
-	public void toggleCalibration() {
-		if (activeMedia != null) {
-			activeMedia.toggleCalibration();
-		}
-	}
-	
-	/**
-     * Disables calibration for the active media.
-     */
-	public void offCalibration() {
-		if (activeMedia != null) {
-			activeMedia.offCalibration();
-		}
-	}
-	
-	/**
-     * Enables calibration for the active media.
-     */
-	public void onCalibration() {
-		if (activeMedia != null) {
-			activeMedia.onCalibration();
-		}
-	}
-	/**
-     * Moves the hovered calibration point for active media.
-     * 
-     * @param mouseX Current mouse X position
-     * @param mouseY Current mouse Y position
-     */
-	public void moveHoverPoint(int mouseX, int mouseY) {
-		if (activeMedia != null) {
-			activeMedia.moveHoverPoint(mouseX, mouseY);
-		}
-	}
-	
-	/**
-     * Handles mouse release events during calibration.
-     */
-	public void mouseReleased() {
-		if (activeMedia != null) {
-			activeMedia.mouseReleased();
-		}
-	}
+	  public void toggleCalibration() {
+	    //for (MediaItem media : mediaItems) {
+	    //  media.toggleCalibration();
+	    //}
+	    mediaItems.get(currentMediaCalibration).toggleCalibration();
+	    PApplet.println("currentMediaCalibration: " + currentMediaCalibration);
+	  }
 
-	// **🔹 Getters**
-	public ArrayList<MediaItem> getMediaItems() {
-		return mediaItems;
-	}
+	  public void changeMediaToCalibrate() {
+	    if (mediaItems.get(currentMediaCalibration).calibrate) {
+	      mediaItems.get(currentMediaCalibration).offCalibration();
+	      currentMediaCalibration = (currentMediaCalibration+1)%mediaItems.size();
+	      mediaItems.get(currentMediaCalibration).onCalibration();
+	    }
+	  }
 
-	public void setActive(boolean isActive) {
-		this.isActive = isActive;
-		//loadAll();
-		for (MediaItem item : mediaItems) {
-			if (this.isActive) {
-				item.playMedia(); // Start video when scene is active
-			} else {
-				item.stopMedia(); // Pause video when scene is inactive
-			}
-		}
-		//System.out.println("Setting Scene Active: " + this.isActive);
+	  public void deactivate() {
+	    for (MediaItem media : mediaItems) {
+	      media.stopMedia();
+	      media.offCalibration();
+	    }
+	    isActive = false;
+	  }
+
+	  public void activate() {
+	    for (MediaItem media : mediaItems) {
+	      media.playMedia();
+	    }
+	    isActive = true;
+	  }
+
+	  public void toggleActivation() {
+	    isActive = !isActive;
+	    if (isActive) {
+	      for (MediaItem media : mediaItems) {
+	        media.playMedia();
+	      }
+	    } else {
+	      for (MediaItem media : mediaItems) {
+	        media.stopMedia();
+	      }
+	    }
+	  }
 	}
-	/**
-     * Saves homography configurations for all media items.
-     */
-	public void saveAll() {
-		this.isActive = isActive;
-		for (MediaItem item : mediaItems) {
-			item.saveHomography(); // Start video when scene is active
-		}
-	}
-	
-	/**
-     * Loads homography configurations for all media items.
-     */
-	public void loadAll() {
-		this.isActive = isActive;
-		for (MediaItem item : mediaItems) {
-			item.loadHomography(); // Start video when scene is active
-		}
-	}
-	
-	/**
-     * Toggles loop mode for all video media items.
-     */
-	public void toggleLoop() {
-		this.isActive = isActive;
-		//loadAll();
-		for (MediaItem item : mediaItems) {
-			if (this.isActive) {
-				item.toggleLoop(); // Start video when scene is active
-			}
-		}
-		//System.out.println("Setting Scene Active: " + this.isActive);
-		
-	}
-}
