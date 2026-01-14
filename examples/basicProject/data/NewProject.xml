@@ -7,16 +7,16 @@
     <Scene>
       <MediaItem Screen="0" height="1920" id="0" isGenerator="0" name="emptyRoad.jpg" width="1280">
         <xyN>
-          <point index="0" x="0.0" y="1.0"/>
-          <point index="1" x="1.0" y="1.0"/>
-          <point index="2" x="1.0" y="0.0"/>
-          <point index="3" x="0.0" y="0.0"/>
+          <point index="0" x="-0.001278409" y="1.0045455"/>
+          <point index="1" x="0.9987215" y="1.0045455"/>
+          <point index="2" x="0.9998579" y="0.35227275"/>
+          <point index="3" x="0.0014204199" y="0.3795454"/>
         </xyN>
         <uvN>
-          <point index="0" x="0.18806815" y="0.8568182"/>
-          <point index="1" x="0.7390625" y="0.85454535"/>
-          <point index="2" x="0.6892045" y="0.17954546"/>
-          <point index="3" x="0.2686079" y="0.16136408"/>
+          <point index="0" x="0.43224424" y="0.9386363"/>
+          <point index="1" x="0.9691761" y="0.9477272"/>
+          <point index="2" x="0.9794034" y="0.41136366"/>
+          <point index="3" x="0.35426134" y="0.39545453"/>
         </uvN>
       </MediaItem>
     </Scene>
@@ -29,29 +29,15 @@
           <point index="3" x="0.0" y="0.0"/>
         </xyN>
         <uvN>
-          <point index="0" x="0.60994315" y="0.8227272"/>
-          <point index="1" x="0.8860795" y="0.8749999"/>
-          <point index="2" x="0.9397727" y="0.28181803"/>
-          <point index="3" x="0.5319602" y="0.33863652"/>
-        </uvN>
-      </MediaItem>
-      <MediaItem Screen="0" height="360" id="1" isGenerator="0" name="legsDance_640_360_25fps.mp4" width="640">
-        <xyN>
-          <point index="0" x="0.0" y="1.0"/>
-          <point index="1" x="1.0" y="1.0"/>
-          <point index="2" x="1.0" y="0.0"/>
-          <point index="3" x="0.0" y="0.0"/>
-        </xyN>
-        <uvN>
-          <point index="0" x="0.058948826" y="0.8454546"/>
-          <point index="1" x="0.4169034" y="0.8409091"/>
-          <point index="2" x="0.38622156" y="0.33181816"/>
-          <point index="3" x="0.10752837" y="0.3090909"/>
+          <point index="0" x="0.43224424" y="0.9386363"/>
+          <point index="1" x="0.9691761" y="0.9477272"/>
+          <point index="2" x="0.9794034" y="0.41136366"/>
+          <point index="3" x="0.35426134" y="0.39545453"/>
         </uvN>
       </MediaItem>
     </Scene>
     <Scene>
-      <MediaItem Screen="0" height="811" id="0" isGenerator="0" name="painting1.jpg" width="640">
+      <MediaItem Screen="0" height="360" id="0" isGenerator="0" name="legsDance_640_360_25fps.mp4" width="640">
         <xyN>
           <point index="0" x="0.0" y="1.0"/>
           <point index="1" x="1.0" y="1.0"/>
@@ -59,10 +45,10 @@
           <point index="3" x="0.0" y="0.0"/>
         </xyN>
         <uvN>
-          <point index="0" x="0.18806815" y="0.8568182"/>
-          <point index="1" x="0.7390625" y="0.85454535"/>
-          <point index="2" x="0.6892045" y="0.17954546"/>
-          <point index="3" x="0.2686079" y="0.16136408"/>
+          <point index="0" x="0.3759943" y="0.78181815"/>
+          <point index="1" x="0.731392" y="0.8727273"/>
+          <point index="2" x="0.8298295" y="0.45454544"/>
+          <point index="3" x="0.23281245" y="0.2772727"/>
         </uvN>
       </MediaItem>
     </Scene>

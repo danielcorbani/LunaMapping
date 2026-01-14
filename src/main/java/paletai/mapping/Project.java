@@ -88,11 +88,12 @@ public class Project {
     int screenButtonsArea = 30;
 
     /** Flags for UI state management */
-    boolean addSelectScreenBool = false, removeScreenBol;
+    boolean addSelectScreenBool = false, removeScreenBol = false;
     boolean addSceneBool = false, removeSceneBol = false;
 
     /** Preview area dimensions for screen panel */
-    float previewAreaX, previewAreaY, previewAreaWidth, previewAreaHeight, previewWidth, previewHeight, previewX, previewY;
+    float previewAreaX, previewAreaY, previewAreaWidth, previewAreaHeight,
+          previewWidth, previewHeight, previewX, previewY;
 
     /** Scene transition management */
     private int nextScene = -1;
@@ -195,11 +196,16 @@ public class Project {
 		File dataDir = new File(mainApplet.sketchPath("data"));
 		if (dataDir.exists() && dataDir.isDirectory()) {
 			File[] files = dataDir.listFiles();
-			for (File file : files) {
-				if (isMediaFile(file.getName())) {
-					mediaFiles.add(file.getName());
-				}
-			}
+            if (files != null) {
+                for (File file : files) {
+                    if (isMediaFile(file.getName())) {
+                        mediaFiles.add(file.getName());
+                    }
+                }
+            } else {
+                // Optional: log a warning
+                PApplet.println("Warning: Could not read files from data directory");
+            }
 		}
 	}
 
@@ -564,7 +570,7 @@ public class Project {
      */
 	void createAssignDisplayButtons() {  
 	    int DisplayButtonX = hx2 - 10 * r;
-	    int DisplayButtonHeight = 30;
+	    int DisplayButtonHeight = 40;
 
 	    // group container
 	    if (displaysList != null) displaysList.remove();
@@ -650,7 +656,8 @@ public class Project {
 				.disableCollapse();
 				//.hideBar();
 
-		PFont myFont = mainApplet.createFont("Arial", 14, true);
+        PFont myFont = mainApplet.createFont("NeueMachina-Regular.otf", 14, true);
+		//PFont myFont = mainApplet.createFont("Arial", 14, true);
 		
 		 // ---- Add Screen button ----
 	    Button addBtn = cp5.addButton("Add Screen")
@@ -731,10 +738,14 @@ public class Project {
 	void addSelectScreenButton(int index) {
 		// PApplet.println("Entered addSelectScreenButtons");
 		String optionName = "" + index;
-		screenRadio.addItem(optionName, index).setSize(30, 20).setColorActive(mainApplet.color(0, 150, 255))
-				.setColorBackground(mainApplet.color(100)).setColorForeground(mainApplet.color(60));
+		screenRadio.addItem(optionName, index)
+                .setSize(30, 20)
+                .setColorActive(mainApplet.color(0, 150, 255))
+				.setColorBackground(mainApplet.color(100))
+                .setColorForeground(mainApplet.color(60)).hideBar();
 
-		PFont myFont = mainApplet.createFont("Arial", 14, true);
+        PFont myFont = mainApplet.createFont("NeueMachina-Regular.otf", 14, true);
+        //PFont myFont = mainApplet.createFont("Arial", 14, true);
 		
 		// Style the new radio button's label
 		screenRadio.getItem(optionName)
@@ -791,14 +802,16 @@ public class Project {
 	    sceneList = cp5.addGroup("Scenes")
 	        .setPosition(r, mainHeight - 8 * r)
 	        .setBackgroundHeight(200)
-	        .disableCollapse();
+	        .disableCollapse().hideBar();
+
 
 	 // load a font (you could make this global so it’s reused)
-	    PFont myFont = mainApplet.createFont("Arial", 14, true);
+	    //PFont myFont = mainApplet.createFont("Arial", 14, true);
+        PFont myFont = mainApplet.createFont("NeueMachina-Regular.otf", 14, true);
 	    sceneList.getCaptionLabel()
 	    .setFont(myFont)
 	    .setColor(120)
-	    .setColorBackground(44);
+	    .setColorBackground(44).hide();
 	    
 
 	    // ---- Add Scene button ----
@@ -896,7 +909,9 @@ public class Project {
 	    Toggle t = sceneRadio.getItem(optionName);
 
 	    // ---- Styling label ----
-	    PFont myFont = mainApplet.createFont("Arial", 20, true); // load once globally if you prefer
+        PFont myFont = mainApplet.createFont("NeueMachina-Regular.otf", 20, true);
+        //PFont myFont = mainApplet.createFont("Arial", 20, true); // load once globally if you prefer
+//
 	    t.getCaptionLabel().setFont(myFont);
 	    t.setColorLabel(mainApplet.color(255)); // label text color (white)
 	    t.getCaptionLabel()
@@ -963,11 +978,12 @@ public class Project {
 	    mediaList.hideBar();
 
 	    // Load a custom font (adjust name/size to your liking)
-	    PFont myFont = mainApplet.createFont("Arial", 12, true);
+        PFont myFont = mainApplet.createFont("NeueMachina-Regular.otf", 16, true);
+        //PFont myFont = mainApplet.createFont("Arial", 12, true);
 
 	    for (int i = 0; i < mediaFiles.size(); i++) {
 	        String name = mediaFiles.get(i);
-	        int buttonHeight = 30;             // custom height
+	        int buttonHeight = 40;             // custom height
 	        int buttonWidth  = hx1 - 2 * r;    // custom width
 	        int buttonY      = i * buttonHeight;
 
@@ -1012,11 +1028,13 @@ public class Project {
                 .setBackgroundHeight(hy2 - hy1 - 2 * r)
                 .disableCollapse();
 
-        generatorList.getCaptionLabel().setVisible(false).toUpperCase(false);
+        PFont myFont = mainApplet.createFont("NeueMachina-Regular.otf", 14, true);
+        generatorList.getCaptionLabel().setFont(myFont).setVisible(false).toUpperCase(false);
         generatorList.hideBar();
 
         // Load a custom font (adjust name/size to your liking)
-        PFont myFont = mainApplet.createFont("Arial", 12, true);
+        //PFont myFont = mainApplet.createFont("NeueMachina-Regular.otf", 14, true);
+        //PFont myFont = mainApplet.createFont("Arial", 12, true);
 
         for (int i = 0; i < availableGenerators.size(); i++) {
             LunaContentGenerator generator = availableGenerators.get(i);
@@ -1111,11 +1129,13 @@ public class Project {
      * @see #drawTimelinePanel(int)
      */
 	void drawUI() {
+        PFont myFont = mainApplet.createFont("NeueMachina-Regular.otf", 20, true);
 		canvaUI.beginDraw();
 		canvaUI.background(33);
 
 		// title
 		canvaUI.textSize(20);
+        canvaUI.textFont(myFont);
 		canvaUI.fill(200);
 		canvaUI.textAlign(PConstants.CENTER, PConstants.CENTER);
 		canvaUI.text(projectName, (float) mainWidth / 2, (float) hy1 / 2);
