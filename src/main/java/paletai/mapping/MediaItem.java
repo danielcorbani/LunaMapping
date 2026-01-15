@@ -585,26 +585,26 @@ public class MediaItem {
      */
     public void assignToDisplay(int w, int h, int screenIndex) {
         // PApplet.println("MediaItem Assigned to Display: " + screenIndex);
-        PApplet.println("=== assignToDisplay ===");
-        PApplet.println("Received dimensions: " + w + "x" + h);
-        PApplet.println("Screen index: " + screenIndex);
+        //PApplet.println("=== assignToDisplay ===");
+        //PApplet.println("Received dimensions: " + w + "x" + h);
+        //PApplet.println("Screen index: " + screenIndex);
 
         this.resolutionX = w;
         this.resolutionY = h;
         this.mediaCanvas = (PGraphics2D) p.createGraphics(resolutionX, resolutionY, PConstants.P2D);
 
-        PApplet.println("mediaCanvas created: " + mediaCanvas.width + "x" + mediaCanvas.height);
+        //PApplet.println("mediaCanvas created: " + mediaCanvas.width + "x" + mediaCanvas.height);
 
         this.mediaCanvas.beginDraw();
         this.mediaCanvas.clear();
         this.mediaCanvas.endDraw();
         this.assignedScreen = screenIndex;
         if (isGenerative) {
-            PApplet.println("Calling generator.setup(" + resolutionX + ", " + resolutionY + ")");
+            //PApplet.println("Calling generator.setup(" + resolutionX + ", " + resolutionY + ")");
             this.generator.setup(resolutionX, resolutionY);
             mediaWidth = resolutionX;
             mediaHeight = resolutionY;
-            PApplet.println("Generator setup complete");
+            //PApplet.println("Generator setup complete");
         }
         vm.assignToDisplay(resolutionX, resolutionY);
     }

@@ -95,6 +95,9 @@ public class Project {
     float previewAreaX, previewAreaY, previewAreaWidth, previewAreaHeight,
           previewWidth, previewHeight, previewX, previewY;
 
+    /** Flags for Preview show management */
+    boolean showPreview = true;
+
     /** Scene transition management */
     private int nextScene = -1;
     private boolean isTransitioning = false;
@@ -424,7 +427,7 @@ public class Project {
 
         // Select the appropriate scene
         selectScreen(currentScreen);
-        PApplet.println("Delete Screen " + currentScreen);
+        //PApplet.println("Delete Screen " + currentScreen);
 
     }
 
@@ -658,7 +661,31 @@ public class Project {
 
         PFont myFont = mainApplet.createFont("NeueMachina-Regular.otf", 14, true);
 		//PFont myFont = mainApplet.createFont("Arial", 14, true);
-		
+
+        // ---- Add Screen button ----
+        Button showBtn = cp5.addButton("Show Screen")
+                .setPosition(hx2 - hx1 - 80 - 4*r, r)
+                .setSize(80, screenButtonsArea)   // wider so label fits nicely
+                .setCaptionLabel("toggle Preview")
+                .setGroup(screenList);
+
+        showBtn.getCaptionLabel()
+                .toUpperCase(false)
+                .setFont(myFont)
+                .align(ControlP5.CENTER, ControlP5.CENTER);
+        showBtn.setColorBackground(mainApplet.color(60, 120, 60));
+        showBtn.setColorForeground(mainApplet.color(90, 160, 90));
+        showBtn.setColorActive(mainApplet.color(120, 200, 120));
+        showBtn.setColorLabel(mainApplet.color(255));
+
+        showBtn.addCallback(new CallbackListener() {
+            public void controlEvent(CallbackEvent event) {
+                if (event.getAction() == ControlP5.ACTION_RELEASE) {
+                    showPreview = !showPreview;
+                }
+            }
+        });
+
 		 // ---- Add Screen button ----
 	    Button addBtn = cp5.addButton("Add Screen")
 	        .setPosition(r, r)
@@ -683,7 +710,7 @@ public class Project {
 	        }
 	    });
 
-        // ---- Add Screen button ----
+        // ---- Del Screen button ----
         Button delBtn = cp5.addButton("Del Screen")
                 .setPosition(r+50, r)
                 .setSize(40, screenButtonsArea)   // wider so label fits nicely
@@ -1218,7 +1245,7 @@ public class Project {
 			// Draw (with border)
 			canvaUI.fill(0);
 			canvaUI.rect(previewX - 2, previewY - 2, previewWidth + 4, previewHeight + 4);
-			canvaUI.image(screen.getScreen(), previewX, previewY, previewWidth, previewHeight);
+			if(showPreview) canvaUI.image(screen.getScreen(), previewX, previewY, previewWidth, previewHeight);
 			canvaUI.fill(200, 100);
 			canvaUI.textSize(48);
 			canvaUI.textAlign(PConstants.CENTER, PConstants.CENTER);
@@ -1288,7 +1315,7 @@ public class Project {
 //			sceneRadio.activate(currentScene);
 //			selectScene(currentScene);
 			startTransition(currentScene + 1);
-			PApplet.println("Next scene : currentScene + 1");
+			//PApplet.println("Next scene : currentScene + 1");
 		}
 	}
 
