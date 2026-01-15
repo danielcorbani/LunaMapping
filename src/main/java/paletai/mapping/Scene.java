@@ -87,9 +87,19 @@ public class Scene {
      */
 	void render() {
 		if (isActive) {
-			for (MediaItem media : mediaItems) {
-				media.render();
-			}
+//			for (MediaItem media : mediaItems) {
+//				media.render();
+//			}
+            for (int i = 0; i< mediaItems.size(); i++){
+                MediaItem media = mediaItems.get(0);
+                if (media.toBeDeleted){
+                    media.stopMedia();
+                    media.deleteControls();
+                    mediaItems.remove(i);
+                } else {
+                    media.render();
+                }
+            }
 		}
 	}
 

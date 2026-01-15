@@ -131,6 +131,11 @@ public class MediaItem {
     boolean controlsVisible = false;
 
     /**
+     * Controls visibility state
+     */
+    boolean toBeDeleted = false;
+
+    /**
      * Content generator for generative media
      */
     public LunaContentGenerator generator;
@@ -313,7 +318,6 @@ public class MediaItem {
                 .setBackgroundHeight(20).disableCollapse().hideBar();
         // .hide(); // Start hidden
 
-        //PFont myFont = p.createFont("NeueMachina-Regular.otf", 10, true);
         // Add controls to the group
         Button b1 = cp5.addButton("calibrate" + controlGroup.getName())
                 .setPosition(10, 10)
@@ -376,6 +380,22 @@ public class MediaItem {
             }
         });
 
+        Button b8 = cp5.addButton("deleteThisMedia" + controlGroup.getName())
+                .setPosition(130, 100)
+                .setSize(20, 20)
+                .setCaptionLabel("x")
+                .setGroup(controlGroup);
+        b8.getCaptionLabel().setFont(mediaFont).toUpperCase(false);      // font
+        b8.addCallback(new CallbackListener() {
+            public void controlEvent(CallbackEvent event) {
+                if (event.getAction() == ControlP5.ACTION_RELEASE) {
+                    //pasteHomographyRequested = true;
+                    toBeDeleted = true;
+                    PApplet.println("media deleted");
+                }
+            }
+        });
+
         // Video controls
         if (isVideo) {
             Button b5 = cp5.addButton("play" + controlGroup.getName())
@@ -424,6 +444,14 @@ public class MediaItem {
                 }
             });
         }
+    }
+
+    /**
+     * Shows the media item's control group.
+     * Makes the calibration and playback controls visible.
+     */
+    public void deleteControls() {
+        controlGroup.remove();
     }
 
     /**
