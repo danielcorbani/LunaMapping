@@ -87,18 +87,12 @@ public class Scene {
      */
 	void render() {
 		if (isActive) {
-//			for (MediaItem media : mediaItems) {
-//				media.render();
-//			}
-            for (int i = 0; i< mediaItems.size(); i++){
-                MediaItem media = mediaItems.get(0);
-                if (media.toBeDeleted){
-                    media.stopMedia();
-                    media.deleteControls();
-                    mediaItems.remove(i);
-                } else {
-                    media.render();
-                }
+			for (MediaItem media : mediaItems) {
+                media.render();
+			}
+
+            for (int i = 0; i<mediaItems.size();i++){
+                if( mediaItems.get(i).toBeDeleted) delMedia(mediaItems.get(i).mediaId);
             }
 		}
 	}
@@ -122,6 +116,8 @@ public class Scene {
      * @param index The index of the media item to remove
      */
     void delMedia(int index) {
+        mediaItems.get(index).stopMedia();
+        mediaItems.get(index).deleteControls();
         mediaItems.remove(index);
     }
 

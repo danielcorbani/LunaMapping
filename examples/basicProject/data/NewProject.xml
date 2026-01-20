@@ -36,7 +36,37 @@
         </uvN>
       </MediaItem>
     </Scene>
-    <Scene/>
-    <Scene/>
+    <Scene>
+      <MediaItem Screen="0" height="360" id="0" isGenerator="0" name="legsDance_640_360_25fps.mp4" width="640">
+        <xyN>
+          <point index="0" x="0.0" y="1.0"/>
+          <point index="1" x="1.0" y="1.0"/>
+          <point index="2" x="1.0" y="0.0"/>
+          <point index="3" x="0.0" y="0.0"/>
+        </xyN>
+        <uvN>
+          <point index="0" x="0.0" y="1.0"/>
+          <point index="1" x="1.0" y="1.0"/>
+          <point index="2" x="1.0" y="0.0"/>
+          <point index="3" x="0.0" y="0.0"/>
+        </uvN>
+      </MediaItem>
+    </Scene>
+    <Scene>
+      <MediaItem Screen="0" height="0" id="0" isGenerator="0" name="ballet30fps.mp4" width="0">
+        <xyN>
+          <point index="0" x="0.0" y="1.0"/>
+          <point index="1" x="1.0" y="1.0"/>
+          <point index="2" x="1.0" y="0.0"/>
+          <point index="3" x="0.0" y="0.0"/>
+        </xyN>
+        <uvN>
+          <point index="0" x="0.0" y="1.0"/>
+          <point index="1" x="1.0" y="1.0"/>
+          <point index="2" x="1.0" y="0.0"/>
+          <point index="3" x="0.0" y="0.0"/>
+        </uvN>
+      </MediaItem>
+    </Scene>
   </Scenes>
 </NewProject>

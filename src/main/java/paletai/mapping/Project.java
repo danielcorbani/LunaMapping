@@ -1032,6 +1032,7 @@ public class Project {
 	            public void controlEvent(CallbackEvent event) {
 	                if (event.getAction() == ControlP5.ACTION_RELEASE) {
 	                    addMedia(name);
+                        PApplet.println("media " + name + " added");
 	                }
 	            }
 	        });
