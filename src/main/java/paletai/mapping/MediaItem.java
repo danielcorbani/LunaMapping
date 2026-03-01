@@ -73,7 +73,7 @@ public class MediaItem {
     /**
      * Video looping status
      */
-    private boolean isLooping = false;
+    private volatile boolean isLooping = false;
 
     /**
      * Video object (for movies)
@@ -157,6 +157,12 @@ public class MediaItem {
      * Font
      */
     private PFont mediaFont;
+
+    private volatile boolean newFrameAvailable = false;
+    private volatile boolean rewindRequested = false;
+
+    private volatile int pendingWidth = 0;
+    private volatile int pendingHeight = 0;
 
     /**
      * Constructs a new MediaItem from a file path.
@@ -490,23 +496,13 @@ public class MediaItem {
      * For generative content, prepares the generator system.
      */
     void initVariables() {
-        // PApplet.println("initVariables");
         mediaFont = p.createFont("NeueMachina-Regular.otf", 10, true);
         if (isVideo) {
-            // PApplet.println("is video");
-            this.movie = new Movie(p, filePath);
-            movie.play(); // Preload the movie (optional)
-            mediaWidth = movie.width;
-            mediaHeight = movie.height;
+            initMovie();
             thumbnail = p.createImage(150, 100, PConstants.RGB);
-
         } else if (isGenerative) {
-            // PApplet.println("MediaItem is picture");
-//            mediaWidth = 0;
-//            mediaHeight = 0;
             thumbnail = p.createImage(150, 100, PConstants.RGB);
         } else {
-            // PApplet.println("MediaItem is picture");
             img = p.loadImage(filePath);
             mediaWidth = img.width;
             mediaHeight = img.height;
@@ -515,6 +511,49 @@ public class MediaItem {
         thumbnailX = 0;// (thumbnail.width+50)*mediaId;
         thumbnailY = 0;
         createControlGroup();
+    }
+
+    /**
+     * Initializes the movie object once without starting playback.
+     * Called during initVariables() instead of creating Movie inline.
+     */
+    private void initMovie() {
+        if (isVideo) {
+            movie = new Movie(p, filePath);
+            //movie.play(); // must call play() once so GStreamer pipeline initializes
+            //movie.pause(); // immediately pause — we just needed the pipeline up
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // Movie event handling (called from Project.movieEvent on GStreamer thread)
+    // -------------------------------------------------------------------------
+
+    /**
+     * Returns true if this MediaItem owns the given Movie instance.
+     * Used by Project.movieEvent() to route callbacks to the correct item.
+     */
+    public boolean ownsMovie(Movie m) {
+        return isVideo && this.movie == m;
+    }
+
+    /**
+     * Called by Project.movieEvent() when a new frame is available.
+     * Runs on the GStreamer thread — only sets flags, never draws.
+     */
+    public void handleMovieEvent() {
+        newFrameAvailable = true;
+
+        // Check end-of-video here, on the GStreamer thread,
+        // but only set a flag — don't call jump() directly
+        if (movie != null && movie.duration() > 0) {
+            float timeLeft = movie.duration() - movie.time();
+            if (timeLeft <= (1.0f / 30.0f)) {
+                if (isLooping) {
+                    rewindRequested = true;
+                }
+            }
+        }
     }
 
     /**
@@ -571,6 +610,10 @@ public class MediaItem {
         }
     }
 
+    // -------------------------------------------------------------------------
+    // Display assignment
+    // -------------------------------------------------------------------------
+
     /**
      * Assigns this media item to a display with specific dimensions.
      * Creates the media canvas, sets resolution, and configures the homography
@@ -584,23 +627,16 @@ public class MediaItem {
      * @see VidMap#assignToDisplay(int, int)
      */
     public void assignToDisplay(int w, int h, int screenIndex) {
-        // PApplet.println("MediaItem Assigned to Display: " + screenIndex);
-        //PApplet.println("=== assignToDisplay ===");
-        //PApplet.println("Received dimensions: " + w + "x" + h);
-        //PApplet.println("Screen index: " + screenIndex);
 
         this.resolutionX = w;
         this.resolutionY = h;
         this.mediaCanvas = (PGraphics2D) p.createGraphics(resolutionX, resolutionY, PConstants.P2D);
-
-        //PApplet.println("mediaCanvas created: " + mediaCanvas.width + "x" + mediaCanvas.height);
 
         this.mediaCanvas.beginDraw();
         this.mediaCanvas.clear();
         this.mediaCanvas.endDraw();
         this.assignedScreen = screenIndex;
         if (isGenerative) {
-            //PApplet.println("Calling generator.setup(" + resolutionX + ", " + resolutionY + ")");
             this.generator.setup(resolutionX, resolutionY);
             mediaWidth = resolutionX;
             mediaHeight = resolutionY;
@@ -661,6 +697,10 @@ public class MediaItem {
 //		}
     }
     // **🔹 vm Wrapper Methods**
+
+    // -------------------------------------------------------------------------
+    // Homography wrappers
+    // -------------------------------------------------------------------------
 
     /**
      * Updates the homography transformation with new coordinate points.
@@ -787,6 +827,10 @@ public class MediaItem {
         return filename.endsWith(".mp4") || filename.endsWith(".avi") || filename.endsWith(".mov");
     }
 
+    // -------------------------------------------------------------------------
+    // Thumbnail
+    // -------------------------------------------------------------------------
+
     /**
      * Generates a thumbnail image for this media item.
      * For generative content: captures the current generator output.
@@ -800,20 +844,24 @@ public class MediaItem {
     public void generateThumbnail() {
         if (isGenerative) {
             thumbnail = p.createImage(mediaCanvas.width, mediaCanvas.height, PConstants.RGB);
-            thumbnail.copy(this.generator.getGraphics(), 0, 0, this.generator.getGraphics().width, this.generator.getGraphics().height, 0, 0, thumbnail.width, thumbnail.height);
+            thumbnail.copy(this.generator.getGraphics(), 0, 0,
+                    this.generator.getGraphics().width, this.generator.getGraphics().height,
+                    0, 0, thumbnail.width, thumbnail.height);
             thumbnail.loadPixels();
             thumbnail.resize(150, 100);
         } else if (!isVideo) {
             img.loadPixels();
             thumbnail = p.createImage(img.width, img.height, PConstants.RGB);
-            thumbnail.copy(img, 0, 0, img.width, img.height, 0, 0, thumbnail.width, thumbnail.height);
+            thumbnail.copy(img, 0, 0, img.width, img.height,
+                    0, 0, thumbnail.width, thumbnail.height);
             thumbnail.loadPixels();
             thumbnail.resize(150, 100);
         } else if (isVideo && movie != null) {
             // Check if video has pixels available
             movie.loadPixels();
             thumbnail = p.createImage(movie.width, movie.height, PConstants.RGB);
-            thumbnail.copy(movie, 0, 0, movie.width, movie.height, 0, 0, thumbnail.width, thumbnail.height);
+            thumbnail.copy(movie, 0, 0, movie.width, movie.height,
+                    0, 0, thumbnail.width, thumbnail.height);
             thumbnail.loadPixels();
             thumbnail.resize(150, 100);
             // PApplet.println(thumbnail.width);
@@ -835,12 +883,15 @@ public class MediaItem {
         vm.setPreviewArea(px, py, pw, ph);
     }
 
+    // -------------------------------------------------------------------------
+    // Rendering
+    // -------------------------------------------------------------------------
+
     /**
      * Renders the media with homography transformation.
-     * Handles static images, video playback, and generative content.
-     * For videos: reads new frames and manages thumbnail generation.
-     * For generative content: updates and draws the generator output.
-     * Applies homography transformation to the final output.
+     * Videos: consumes thread-safe flags set by handleMovieEvent().
+     * Generative: updates and draws generator output.
+     * Images: draws the static image.
      *
      * @see Movie#available()
      * @see Movie#read()
@@ -849,33 +900,85 @@ public class MediaItem {
      * @see VidMap#render(PGraphics2D)
      */
     public void render() {
+//        if (isVideo) PApplet.println("render: movie=" + movie +
+//                " loaded=" + loaded + " newFrame=" + newFrameAvailable +
+//                " isPlaying=" + (movie != null ? movie.isPlaying() : "null"));
+
         mediaCanvas.beginDraw();
         mediaCanvas.background(0); // Clear previous frame
 
         if (isVideo && movie != null) { // Check for null FIRST
-            if (movie.available()) {
-                movie.read();
-                if (mediaHeight == 0) {
-                    mediaWidth = movie.width;
-                    mediaHeight = movie.height;
-                    if (!loaded)
-                        applyAspectRatioCorrection(mediaWidth, mediaHeight);
-                    loaded = true;
-                }
-                if (movie.time() > 0.5f && !thumbnailGenerated) {
-                    generateThumbnail();
-                    //PApplet.println("Video thumbnail generated");
-                }
+//            if (movie.available()) {
+//                movie.read();
+//                if (mediaHeight == 0) {
+//                    mediaWidth = movie.width;
+//                    mediaHeight = movie.height;
+//                    if (!loaded)
+//                        applyAspectRatioCorrection(mediaWidth, mediaHeight);
+//                    loaded = true;
+//                }
+//                if (movie.time() > 0.5f && !thumbnailGenerated) {
+//                    generateThumbnail();
+//                    //PApplet.println("Video thumbnail generated");
+//                }
+//
+//                if (movie.time() > (movie.duration() - 0.1) && !isLooping) {
+//                    stopMedia();
+//                    //PApplet.println("Video thumbnail generated");
+//                }
+//            }
+//
+//            // Only try to draw if movie is not null
+//            mediaCanvas.image(movie, 0, 0, mediaCanvas.width, mediaCanvas.height);
 
-                if (movie.time() > (movie.duration() - 0.1) && !isLooping) {
-                    stopMedia();
-                    //PApplet.println("Video thumbnail generated");
-                }
+            // Dimensions and thumbnail — check once after loaded
+//            if (!loaded && movie.width > 0) {
+//                mediaWidth = movie.width;
+//                mediaHeight = movie.height;
+//                applyAspectRatioCorrection(mediaWidth, mediaHeight);
+//                loaded = true;
+//            }
+//            if (loaded && !thumbnailGenerated && movie.time() > 0.5f) {
+//                generateThumbnail();
+//            }
+//
+//            // End-of-video handling
+//            if (loaded && movie.duration() > 0 &&
+//                    movie.time() >= movie.duration() - (1.0f / 30.0f)) {
+//                if (isLooping) {
+//                    movie.jump(0);
+//                    movie.play();
+//                } else {
+//                    movie.pause(); // freeze on last frame
+//                }
+//            }
+//
+//            // Always draw current frame (movieEvent keeps it fresh)
+//            mediaCanvas.image(movie, 0, 0, mediaCanvas.width, mediaCanvas.height);
+
+            // Handle rewind request set by movieEvent thread
+            if (rewindRequested) {
+                rewindRequested = false;
+                movie.jump(0);
+                movie.play();
             }
 
-            // Only try to draw if movie is not null
-            mediaCanvas.image(movie, 0, 0, mediaCanvas.width, mediaCanvas.height);
+            // Capture dimensions once the first frame arrives
+            if (!loaded && movie.width > 0) {
+                mediaWidth = movie.width;
+                mediaHeight = movie.height;
+                //applyAspectRatioCorrection(mediaWidth, mediaHeight);
+                loaded = true;
+            }
 
+            // Thumbnail — once only
+            if (loaded && !thumbnailGenerated && movie.time() > 0.5f) {
+                generateThumbnail();
+            }
+
+            // Always draw — movieEvent keeps frame fresh, fallback keeps last frame visible
+            mediaCanvas.image(movie, 0, 0, mediaCanvas.width, mediaCanvas.height);
+            newFrameAvailable = false;
         } else if (isGenerative) {
             //PApplet.println("Generative");
             this.generator.update();
@@ -888,7 +991,6 @@ public class MediaItem {
                 }
             }
         } else if (!isVideo) {
-            // Handle non-video or stopped video case
             if (!thumbnailGenerated) {
                 generateThumbnail();
             }
@@ -905,23 +1007,26 @@ public class MediaItem {
         }
     }
 
+    // -------------------------------------------------------------------------
+    // Playback control
+    // -------------------------------------------------------------------------
+
     /**
      * Toggles video playback state.
      * Plays if paused, pauses if playing. No effect on static images or generative content.
      */
     public void togglePlayback() {
-        if (isVideo) {
+        if (isVideo && movie != null) {
             if (movie.isPlaying()) {
                 movie.pause();
             } else {
-                playMedia();
+                movie.play();
             }
         }
     }
 
     /**
-     * Toggles video loop mode.
-     * Switches between single playback and continuous looping for video content.
+     * Toggles loop mode without restarting playback.
      */
     public void toggleLoop() {
         isLooping = !isLooping;
@@ -929,53 +1034,96 @@ public class MediaItem {
     }
 
     /**
-     * Starts media playback.
-     * For videos: begins playback from the start in single-play mode.
-     * Stops any existing playback before starting new playback.
-     * No effect on static images or generative content.
+     * Starts playback from the beginning in single-play mode.
+     * Rebuilds the GStreamer pipeline if it was previously disposed.
      */
     public void playMedia() {
+//        if (isVideo && movie != null) {
+//            movie.jump(0);   // rewind to start
+//            movie.play();
+//            isLooping = false;
+//        }
         if (isVideo) {
-            stopMedia(); // clean up old one first
-            movie = new Movie(p, filePath);
+            if (movie == null) initMovie(); // rebuild if was disposed
+            if(loaded) movie.jump(0); // only rewind if already played before
             movie.play();
             isLooping = false;
         }
     }
+//    public void playMedia() {
+//        if (isVideo) {
+//            stopMedia(); // clean up old one first
+//            movie = new Movie(p, filePath);
+//            movie.play();
+//            isLooping = false;
+//        }
+//    }
+
 
     /**
-     * Starts media playback in loop mode.
-     * For videos: begins continuous looping playback.
-     * Stops any existing playback before starting new looped playback.
-     * No effect on static images or generative content.
+     * Starts looping playback from the beginning.
+     * Rebuilds the GStreamer pipeline if it was previously disposed.
      */
     public void loopMedia() {
+//        if (isVideo && movie != null) {
+//            movie.jump(0);
+//            movie.loop();
+//            isLooping = true;
+//        }
         if (isVideo) {
-            stopMedia(); // clean up old one first
-            movie = new Movie(p, filePath);
+            if (movie == null) initMovie();
+            if (loaded) movie.jump(0);
             movie.loop();
             isLooping = true;
         }
     }
+//    public void loopMedia() {
+//        if (isVideo) {
+//            stopMedia(); // clean up old one first
+//            movie = new Movie(p, filePath);
+//            movie.loop();
+//            isLooping = true;
+//        }
+//    }
 
     /**
-     * Stops media playback and cleans up resources.
-     * For videos: stops playback, disposes native resources, and clears the display.
-     * Crucial for GStreamer cleanup to release native pipeline resources.
-     * No effect on static images or generative content.
+     * Pauses playback, preserving the current frame on screen.
+     * Used by the Stop button — does NOT dispose the pipeline.
      */
     public void stopMedia() {
         if (isVideo && movie != null) {
-            //PApplet.println("Stop Media");
+            movie.pause(); // pause instead of stop — preserves last frame in buffer
+            // Do NOT clear the canvas here — let the last frame persist
+        }
+    }
+//    public void stopMedia() {
+//        if (isVideo && movie != null) {
+//            //PApplet.println("Stop Media");
+//            movie.stop();
+//            movie.dispose(); // force GStreamer cleanup. It is crucial to force GStreamer to release the
+//            // native pipeline before reusing
+//            movie = null;
+//            // movie = new Movie(p, filePath);
+//            mediaCanvas.beginDraw();
+//            mediaCanvas.clear();
+//            mediaCanvas.endDraw();
+//            //PApplet.println("finished Stop Media");
+//        }
+//    }
+
+    /**
+     * Fully disposes the GStreamer pipeline and releases all native resources.
+     * Called by Scene.deactivate() to prevent pipeline accumulation across scene switches.
+     * playMedia() / loopMedia() will call initMovie() to rebuild when needed.
+     */
+    public void disposeMedia() {
+        if (isVideo && movie != null) {
             movie.stop();
-            movie.dispose(); // force GStreamer cleanup. It is crucial to force GStreamer to release the
-            // native pipeline before reusing
+            movie.dispose();
             movie = null;
-            // movie = new Movie(p, filePath);
-            mediaCanvas.beginDraw();
-            mediaCanvas.clear();
-            mediaCanvas.endDraw();
-            //PApplet.println("finished Stop Media");
+            loaded = false;
+            newFrameAvailable = false;
+            rewindRequested = false;
         }
     }
 

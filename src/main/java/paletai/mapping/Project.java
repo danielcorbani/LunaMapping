@@ -11,6 +11,8 @@ import processing.opengl.PGraphics2D;
 import controlP5.*;
 import paletai.generators.LunaContentGenerator;
 import processing.data.XML;
+import processing.video.Movie;
+
 import java.lang.reflect.*;
 import java.util.Arrays;
 import java.util.Objects;
@@ -125,6 +127,7 @@ public class Project {
      * @see #initializeDisplays()
      * @see #scanMediaFiles()
      * @see #scanGenerators()
+     * @see #scanGenerators()
      * @see #initXMLconfig()
      * @see #initializeButtons()
      */
@@ -153,37 +156,67 @@ public class Project {
 	void initializeDisplays() {
 		GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
 		GraphicsDevice[] devices = ge.getScreenDevices();
+        GraphicsDevice primaryDevice = ge.getDefaultScreenDevice(); // true OS primary
 		availableDisplays.clear(); // Clear previous display info
 
-		for (int i = 0; i < devices.length; i++) {
-			Rectangle bounds = devices[i].getDefaultConfiguration().getBounds();
-			if (i == 0) { // initialize UI
-				mainWidth = bounds.width;
-				mainHeight = bounds.height;
-				hx1 = mainWidth / 6;
-				hx2 = mainWidth - hx1;
-				hy1 = 30;
-				hy2 = 2 * mainHeight / 4;
-				r = 10;
-				previewAreaX = hx1 + 20;
-				previewAreaY = hy1 + 20;
-				previewAreaWidth = hx2 - hx1 - 40;
-				previewAreaHeight = hy2 - hy1 - 40 - screenButtonsArea; // Room for buttons
-				// Create an offscreen buffer matching main screen size
-				canvaUI = (PGraphics2D) mainApplet.createGraphics(mainWidth, mainHeight, PConstants.P2D);
-				canvaUI.beginDraw();
-				canvaUI.background(33);
-				canvaUI.textSize(20);
-				canvaUI.fill(200);
-				canvaUI.textAlign(PConstants.CENTER, PConstants.CENTER);
-				canvaUI.text("Luna Video Mapping", (float) canvaUI.width / 2, (float) canvaUI.height / 2);
-				canvaUI.endDraw();
-			} else {
-				// Store external display info without creating screens
-				availableDisplays.add(bounds);
-				PApplet.println("Found external display #" + i + ": " + bounds.width + "x" + bounds.height);
-			}
-		}
+//		for (int i = 0; i < devices.length; i++) {
+//			Rectangle bounds = devices[i].getDefaultConfiguration().getBounds();
+//			if (i == 0) { // initialize UI
+//				mainWidth = bounds.width;
+//				mainHeight = bounds.height;
+//				hx1 = mainWidth / 6;
+//				hx2 = mainWidth - hx1;
+//				hy1 = 30;
+//				hy2 = 2 * mainHeight / 4;
+//				r = 10;
+//				previewAreaX = hx1 + 20;
+//				previewAreaY = hy1 + 20;
+//				previewAreaWidth = hx2 - hx1 - 40;
+//				previewAreaHeight = hy2 - hy1 - 40 - screenButtonsArea; // Room for buttons
+//				// Create an offscreen buffer matching main screen size
+//				canvaUI = (PGraphics2D) mainApplet.createGraphics(mainWidth, mainHeight, PConstants.P2D);
+//				canvaUI.beginDraw();
+//				canvaUI.background(33);
+//				canvaUI.textSize(20);
+//				canvaUI.fill(200);
+//				canvaUI.textAlign(PConstants.CENTER, PConstants.CENTER);
+//				canvaUI.text("Luna Video Mapping", (float) canvaUI.width / 2, (float) canvaUI.height / 2);
+//				canvaUI.endDraw();
+//			} else {
+//				// Store external display info without creating screens
+//				availableDisplays.add(bounds);
+//				PApplet.println("Found external display #" + i + ": " + bounds.width + "x" + bounds.height);
+//			}
+//		}
+        // First pass: initialize UI from the true primary display
+        for (GraphicsDevice device : devices) {
+            Rectangle bounds = device.getDefaultConfiguration().getBounds();
+            if (device == primaryDevice) {
+                mainWidth = bounds.width;
+                mainHeight = bounds.height;
+                hx1 = mainWidth / 6;
+                hx2 = mainWidth - hx1;
+                hy1 = 30;
+                hy2 = 2 * mainHeight / 4;
+                r = 10;
+                previewAreaX = hx1 + 20;
+                previewAreaY = hy1 + 20;
+                previewAreaWidth = hx2 - hx1 - 40;
+                previewAreaHeight = hy2 - hy1 - 40 - screenButtonsArea;
+                canvaUI = (PGraphics2D) mainApplet.createGraphics(mainWidth, mainHeight, PConstants.P2D);
+                canvaUI.beginDraw();
+                canvaUI.background(33);
+                canvaUI.textSize(20);
+                canvaUI.fill(200);
+                canvaUI.textAlign(PConstants.CENTER, PConstants.CENTER);
+                canvaUI.text("Luna Video Mapping", (float) canvaUI.width / 2, (float) canvaUI.height / 2);
+                canvaUI.endDraw();
+            } else {
+                // All non-primary displays are available for mapping output
+                availableDisplays.add(bounds);
+                PApplet.println("Found external display: " + bounds.width + "x" + bounds.height + " at x=" + bounds.x);
+            }
+        }
 	}
 
     /**
@@ -487,7 +520,7 @@ public class Project {
 		MediaItem newMedia = new MediaItem(mainApplet, name, currentScreen, newMediaId);
 		newMedia.assignToDisplay(screens.get(currentScreen).w, screens.get(currentScreen).h, currentScreen);
 		scenes.get(currentScene).addMedia(newMedia);
-		scenes.get(currentScreen).setThumbnailPosition(2 * r, hy2);
+		scenes.get(currentScene).setThumbnailPosition(2 * r, hy2);
 	}
 
     /**
@@ -785,7 +818,7 @@ public class Project {
 		Toggle t = screenRadio.getItem(optionName);
 		if (index == 0) {
 			screenRadio.activate(index); // ensures this Toggle is ON
-			selectScene(index); // call your logic as if it was clicked
+            selectScreen(index); // call your logic as if it was clicked
 		}
 		t.addCallback(new CallbackListener() {
 			public void controlEvent(CallbackEvent ev) {
@@ -1093,6 +1126,23 @@ public class Project {
                     }
                 }
             });
+        }
+    }
+
+    /**
+     * Routes a movie event to the correct MediaItem.
+     * Must be called from movieEvent(Movie m) in the sketch.
+     *
+     * @param m The Movie instance that has a new frame available
+     */
+    public void movieEvent(Movie m) {
+        for (Scene scene : scenes) {
+            for (MediaItem media : scene.mediaItems) {
+                if (media.ownsMovie(m)) {
+                    media.handleMovieEvent();
+                    return; // found it, no need to keep searching
+                }
+            }
         }
     }
 

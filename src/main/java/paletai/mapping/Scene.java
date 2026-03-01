@@ -80,7 +80,8 @@ public class Scene {
 
     /**
      * Renders all media items in this scene if the scene is active.
-     * Only processes rendering when the scene is in active state.
+     * Deletion requests are collected after rendering to avoid
+     * modifying the list while iterating over it.
      *
      * @see MediaItem#render()
      * @see #isActive
@@ -91,8 +92,16 @@ public class Scene {
                 media.render();
 			}
 
-            for (int i = 0; i<mediaItems.size();i++){
-                if( mediaItems.get(i).toBeDeleted) delMedia(mediaItems.get(i).mediaId);
+//            for (int i = 0; i<mediaItems.size();i++){
+//                if( mediaItems.get(i).toBeDeleted) delMedia(mediaItems.get(i).mediaId);
+//            }
+            // Collect deletions first, then process — avoids index corruption
+            ArrayList<Integer> toDelete = new ArrayList<Integer>();
+            for (MediaItem media : mediaItems) {
+                if (media.toBeDeleted) toDelete.add(media.mediaId);
+            }
+            for (int id : toDelete) {
+                delMedia(id);
             }
 		}
 	}
@@ -111,15 +120,36 @@ public class Scene {
 	}
 
     /**
-     * Removes a media item from this scene by index.
+     * Removes a media item from this scene by mediaId.
+     * Searches by mediaId (not list index) to handle gaps safely,
+     * then re-indexes remaining items so mediaId always matches list position.
      *
      * @param index The index of the media item to remove
      */
-    void delMedia(int index) {
-        mediaItems.get(index).stopMedia();
-        mediaItems.get(index).deleteControls();
-        mediaItems.remove(index);
+    void delMedia(int mediaId) {
+        MediaItem toRemove = null;
+        for (MediaItem m : mediaItems) {
+            if (m.mediaId == mediaId) {
+                toRemove = m;
+                break;
+            }
+        }
+        if (toRemove == null) return;
+
+        toRemove.stopMedia();
+        toRemove.deleteControls();
+        mediaItems.remove(toRemove);
+
+        // Re-index so mediaId always matches list position
+        for (int i = 0; i < mediaItems.size(); i++) {
+            mediaItems.get(i).mediaId = i;
+        }
     }
+//    void delMedia(int index) {
+//        mediaItems.get(index).stopMedia();
+//        mediaItems.get(index).deleteControls();
+//        mediaItems.remove(index);
+//    }
 
     /**
      * Serializes the scene and all its media items to XML for project saving.
@@ -147,7 +177,7 @@ public class Scene {
      */
 	public void deactivate() {
 		for (MediaItem media : mediaItems) {
-			media.stopMedia();
+			media.disposeMedia();
 			media.offCalibration();
 			media.hideControls();
 		}
@@ -163,7 +193,7 @@ public class Scene {
      */
 	public void activate() {
 		for (MediaItem media : mediaItems) {
-			media.playMedia();
+			media.playMedia(); // rebuilds pipeline if disposed, then plays
 			media.showControls();
 		}
 		isActive = true;
