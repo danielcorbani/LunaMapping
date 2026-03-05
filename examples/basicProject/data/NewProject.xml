@@ -8,10 +8,10 @@
     <Scene>
       <MediaItem Screen="0" height="0" id="0" isGenerator="0" name="4937374-30Fps.mp4" width="0">
         <xyN>
-          <point index="0" x="0.0" y="1.0"/>
-          <point index="1" x="1.0" y="1.0"/>
-          <point index="2" x="1.0" y="0.0"/>
-          <point index="3" x="0.0" y="0.0"/>
+          <point index="0" x="-0.001278409" y="1.0045455"/>
+          <point index="1" x="0.9987215" y="1.0045455"/>
+          <point index="2" x="0.9998579" y="0.35227275"/>
+          <point index="3" x="0.0014204199" y="0.3795454"/>
         </xyN>
         <uvN>
           <point index="0" x="0.08088651" y="0.8568182"/>
