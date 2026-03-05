@@ -4,24 +4,9 @@
     <Screen id="0"/>
   </Screens>
   <Scenes>
+    <Scene/>
     <Scene>
-      <MediaItem Screen="0" height="1920" id="0" isGenerator="0" name="emptyRoad.jpg" width="1280">
-        <xyN>
-          <point index="0" x="-0.001278409" y="1.0045455"/>
-          <point index="1" x="0.9987215" y="1.0045455"/>
-          <point index="2" x="0.9998579" y="0.35227275"/>
-          <point index="3" x="0.0014204199" y="0.3795454"/>
-        </xyN>
-        <uvN>
-          <point index="0" x="0.43224424" y="0.9386363"/>
-          <point index="1" x="0.9691761" y="0.9477272"/>
-          <point index="2" x="0.9794034" y="0.41136366"/>
-          <point index="3" x="0.35426134" y="0.39545453"/>
-        </uvN>
-      </MediaItem>
-    </Scene>
-    <Scene>
-      <MediaItem Screen="0" height="811" id="0" isGenerator="0" name="painting1.jpg" width="640">
+      <MediaItem Screen="0" height="0" id="0" isGenerator="0" name="4937374-30Fps.mp4" width="0">
         <xyN>
           <point index="0" x="0.0" y="1.0"/>
           <point index="1" x="1.0" y="1.0"/>
@@ -29,15 +14,15 @@
           <point index="3" x="0.0" y="0.0"/>
         </xyN>
         <uvN>
-          <point index="0" x="0.43224424" y="0.9386363"/>
-          <point index="1" x="0.9691761" y="0.9477272"/>
-          <point index="2" x="0.9794034" y="0.41136366"/>
-          <point index="3" x="0.35426134" y="0.39545453"/>
+          <point index="0" x="0.08088651" y="0.8568182"/>
+          <point index="1" x="0.5523892" y="0.92727274"/>
+          <point index="2" x="0.55877817" y="0.24999994"/>
+          <point index="3" x="0.11794229" y="0.23636371"/>
         </uvN>
       </MediaItem>
     </Scene>
     <Scene>
-      <MediaItem Screen="0" height="360" id="0" isGenerator="0" name="legsDance_640_360_25fps.mp4" width="640">
+      <MediaItem Screen="0" height="0" id="0" isGenerator="0" name="6289176-30Fps.mp4" width="0">
         <xyN>
           <point index="0" x="0.0" y="1.0"/>
           <point index="1" x="1.0" y="1.0"/>
@@ -45,15 +30,13 @@
           <point index="3" x="0.0" y="0.0"/>
         </xyN>
         <uvN>
-          <point index="0" x="0.0" y="1.0"/>
-          <point index="1" x="1.0" y="1.0"/>
-          <point index="2" x="1.0" y="0.0"/>
-          <point index="3" x="0.0" y="0.0"/>
+          <point index="0" x="0.034659054" y="0.9522727"/>
+          <point index="1" x="0.4181818" y="0.9840908"/>
+          <point index="2" x="0.4335227" y="0.35681802"/>
+          <point index="3" x="0.03210224" y="0.3545453"/>
         </uvN>
       </MediaItem>
-    </Scene>
-    <Scene>
-      <MediaItem Screen="0" height="0" id="0" isGenerator="0" name="ballet30fps.mp4" width="0">
+      <MediaItem Screen="0" height="0" id="1" isGenerator="0" name="9720247-30Fps.mp4" width="0">
         <xyN>
           <point index="0" x="0.0" y="1.0"/>
           <point index="1" x="1.0" y="1.0"/>
@@ -61,12 +44,14 @@
           <point index="3" x="0.0" y="0.0"/>
         </xyN>
         <uvN>
-          <point index="0" x="0.0" y="1.0"/>
-          <point index="1" x="1.0" y="1.0"/>
-          <point index="2" x="1.0" y="0.0"/>
-          <point index="3" x="0.0" y="0.0"/>
+          <point index="0" x="0.51150566" y="0.95"/>
+          <point index="1" x="0.962784" y="0.95454544"/>
+          <point index="2" x="0.9078125" y="0.32954544"/>
+          <point index="3" x="0.4539772" y="0.27272737"/>
         </uvN>
       </MediaItem>
     </Scene>
+    <Scene/>
+    <Scene/>
   </Scenes>
 </NewProject>

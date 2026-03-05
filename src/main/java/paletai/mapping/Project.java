@@ -1129,22 +1129,22 @@ public class Project {
         }
     }
 
-    /**
-     * Routes a movie event to the correct MediaItem.
-     * Must be called from movieEvent(Movie m) in the sketch.
-     *
-     * @param m The Movie instance that has a new frame available
-     */
-    public void movieEvent(Movie m) {
-        for (Scene scene : scenes) {
-            for (MediaItem media : scene.mediaItems) {
-                if (media.ownsMovie(m)) {
-                    media.handleMovieEvent();
-                    return; // found it, no need to keep searching
-                }
-            }
-        }
-    }
+//    /**
+//     * Routes a movie event to the correct MediaItem.
+//     * Must be called from movieEvent(Movie m) in the sketch.
+//     *
+//     * @param m The Movie instance that has a new frame available
+//     */
+//    public void movieEvent(Movie m) {
+//        for (Scene scene : scenes) {
+//            for (MediaItem media : scene.mediaItems) {
+//                if (media.ownsMovie(m)) {
+//                    media.handleMovieEvent();
+//                    return; // found it, no need to keep searching
+//                }
+//            }
+//        }
+//    }
 
     /**
      * Main rendering method that draws the entire project interface.

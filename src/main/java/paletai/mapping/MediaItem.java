@@ -158,11 +158,6 @@ public class MediaItem {
      */
     private PFont mediaFont;
 
-    private volatile boolean newFrameAvailable = false;
-    private volatile boolean rewindRequested = false;
-
-    private volatile int pendingWidth = 0;
-    private volatile int pendingHeight = 0;
 
     /**
      * Constructs a new MediaItem from a file path.
@@ -529,32 +524,32 @@ public class MediaItem {
     // Movie event handling (called from Project.movieEvent on GStreamer thread)
     // -------------------------------------------------------------------------
 
-    /**
-     * Returns true if this MediaItem owns the given Movie instance.
-     * Used by Project.movieEvent() to route callbacks to the correct item.
-     */
-    public boolean ownsMovie(Movie m) {
-        return isVideo && this.movie == m;
-    }
+//    /**
+//     * Returns true if this MediaItem owns the given Movie instance.
+//     * Used by Project.movieEvent() to route callbacks to the correct item.
+//     */
+//    public boolean ownsMovie(Movie m) {
+//        return isVideo && this.movie == m;
+//    }
 
-    /**
-     * Called by Project.movieEvent() when a new frame is available.
-     * Runs on the GStreamer thread — only sets flags, never draws.
-     */
-    public void handleMovieEvent() {
-        newFrameAvailable = true;
-
-        // Check end-of-video here, on the GStreamer thread,
-        // but only set a flag — don't call jump() directly
-        if (movie != null && movie.duration() > 0) {
-            float timeLeft = movie.duration() - movie.time();
-            if (timeLeft <= (1.0f / 30.0f)) {
-                if (isLooping) {
-                    rewindRequested = true;
-                }
-            }
-        }
-    }
+//    /**
+//     * Called by Project.movieEvent() when a new frame is available.
+//     * Runs on the GStreamer thread — only sets flags, never draws.
+//     */
+//    public void handleMovieEvent() {
+//        newFrameAvailable = true;
+//
+//        // Check end-of-video here, on the GStreamer thread,
+//        // but only set a flag — don't call jump() directly
+////        if (movie != null && movie.duration() > 0) {
+////            float timeLeft = movie.duration() - movie.time();
+////            if (timeLeft <= (1.0f / 30.0f)) {
+////                if (isLooping) {
+////                    rewindRequested = true;
+////                }
+////            }
+////        }
+//    }
 
     /**
      * Updates media item configuration from XML data.
@@ -957,11 +952,11 @@ public class MediaItem {
 //            mediaCanvas.image(movie, 0, 0, mediaCanvas.width, mediaCanvas.height);
 
             // Handle rewind request set by movieEvent thread
-            if (rewindRequested) {
-                rewindRequested = false;
-                movie.jump(0);
-                movie.play();
-            }
+//            if (rewindRequested) {
+//                rewindRequested = false;
+//                movie.jump(0);
+//                movie.play();
+//            }
 
             // Capture dimensions once the first frame arrives
             if (!loaded && movie.width > 0) {
@@ -976,9 +971,14 @@ public class MediaItem {
                 generateThumbnail();
             }
 
+            if (isLooping && movie.time()>movie.duration()-0.2){
+                disposeMedia();
+                initMovie();
+                loopMedia();
+            }
+
             // Always draw — movieEvent keeps frame fresh, fallback keeps last frame visible
             mediaCanvas.image(movie, 0, 0, mediaCanvas.width, mediaCanvas.height);
-            newFrameAvailable = false;
         } else if (isGenerative) {
             //PApplet.println("Generative");
             this.generator.update();
@@ -1045,8 +1045,9 @@ public class MediaItem {
 //        }
         if (isVideo) {
             if (movie == null) initMovie(); // rebuild if was disposed
-            if(loaded) movie.jump(0); // only rewind if already played before
+            //if(loaded) movie.jump(0); // only rewind if already played before
             movie.play();
+            movie.noLoop();
             isLooping = false;
         }
     }
@@ -1072,7 +1073,7 @@ public class MediaItem {
 //        }
         if (isVideo) {
             if (movie == null) initMovie();
-            if (loaded) movie.jump(0);
+            //if (loaded) movie.jump(0);
             movie.loop();
             isLooping = true;
         }
@@ -1122,8 +1123,6 @@ public class MediaItem {
             movie.dispose();
             movie = null;
             loaded = false;
-            newFrameAvailable = false;
-            rewindRequested = false;
         }
     }
 

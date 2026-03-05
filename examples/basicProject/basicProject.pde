@@ -9,10 +9,11 @@
  */
 
 
-/* In this example, a few files were included in the data folder.
- *        
+/* Befor running this sketch, include all necessary media files
+ *        in the data folder. The library will find them and made
+ *        them available in the left panel.
  */
- 
+
 import paletai.mapping.*;
 
 //Luna need this two complementary libraries to work
@@ -22,6 +23,11 @@ import processing.video.*;
 
 
 Project project;
+
+// Called every time a new frame is available to read
+void movieEvent(Movie m) {
+  m.read();
+}
 
 void setup() {
   fullScreen(P2D, SPAN); //This should always be FullScreen, P2D and SPAN

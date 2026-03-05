@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<generators name="generators" type="Luna Video Mapping project">
+  <Screens>
+    <Screen id="0"/>
+  </Screens>
+  <Scenes>
+    <Scene/>
+    <Scene>
+      <MediaItem Screen="0" height="720" id="0" isGenerator="1" name="Camera" width="1280">
+        <xyN>
+          <point index="0" x="0.0" y="1.0"/>
+          <point index="1" x="1.0" y="1.0"/>
+          <point index="2" x="1.0" y="0.0"/>
+          <point index="3" x="0.0" y="0.0"/>
+        </xyN>
+        <uvN>
+          <point index="0" x="0.27755678" y="0.92727274"/>
+          <point index="1" x="0.74801135" y="0.9613636"/>
+          <point index="2" x="0.815767" y="0.047727287"/>
+          <point index="3" x="0.1816761" y="0.052272737"/>
+        </uvN>
+      </MediaItem>
+    </Scene>
+    <Scene/>
+  </Scenes>
+</generators>

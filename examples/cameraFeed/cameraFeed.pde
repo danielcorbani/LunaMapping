@@ -30,6 +30,11 @@ int camWidth, camHeight;
 PGraphics2D pgCamA;
 
 
+// Called every time a new frame is available to read
+void movieEvent(Movie m) {
+  m.read();
+}
+
 void setup() {
   fullScreen(P2D, SPAN); //Always FullScreen, P2D and SPAN
   initCam();

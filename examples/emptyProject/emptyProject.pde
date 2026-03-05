@@ -24,6 +24,11 @@ import processing.video.*;
 
 Project project;
 
+// Called every time a new frame is available to read
+void movieEvent(Movie m) {
+  m.read();
+}
+
 void setup() {
   fullScreen(P2D, SPAN); //This should always be FullScreen, P2D and SPAN
   project = new Project(this, "NewProject");  //Name your project here

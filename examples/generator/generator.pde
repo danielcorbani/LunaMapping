@@ -24,7 +24,10 @@ Project project;
 
 import processing.opengl.PGraphics2D;
 
-
+// Called every time a new frame is available to read
+void movieEvent(Movie m) {
+  m.read();
+}
 
 void setup() {
   fullScreen(P2D, SPAN); //Always FullScreen, P2D and SPAN
