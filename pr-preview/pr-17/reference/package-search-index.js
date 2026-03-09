@@ -1,1 +1,0 @@
-packageSearchIndex = [{"l":"All Packages","u":"allpackages-index.html"},{"l":"paletai.generators"},{"l":"paletai.mapping"}];updateSearchResults();
