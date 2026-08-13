@@ -84,7 +84,7 @@ if(currentOS.isMacOsX) {
 }
 // If you need to set the sketchbook location manually, uncomment out the following
 // line and set sketchbookLocation to the correct location
-sketchbookLocation = "C:/Users/danie/OneDrive/Documentos/Processing"
+// sketchbookLocation = "$userHome/Documents/Processing"
 
 
 // Repositories where dependencies will be fetched from.

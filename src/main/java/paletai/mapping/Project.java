@@ -107,6 +107,14 @@ public class Project {
     private int transitionDuration = 2000; // 2 second transition
     private float transitionProgress = 0;
 
+    /** Whether spacebar loops back from the last scene to the first */
+    private boolean loopScenes = false;
+
+    /** Autoplay state and configuration */
+    private boolean autoPlay = false;
+    private float autoPlayDelay = 5.0f; // seconds between scene advances
+    private int autoPlayLastTime = 0;   // millis() timestamp of last advance
+
     /** Available content generators discovered through reflection */
     private ArrayList<LunaContentGenerator> availableGenerators;
 
@@ -116,6 +124,11 @@ public class Project {
     private PVector[] copiedXY = null;
     private PVector[] copiedUV = null;
     private String copiedConfigName = "";
+
+    /** Cached fonts — created once to avoid per-frame and per-call allocation */
+    PFont uiFont14;
+    PFont uiFont16;
+    PFont uiFont20;
 
     /**
      * Constructs a new Project instance with the specified name.
@@ -135,6 +148,9 @@ public class Project {
 		mainApplet = p;
 		projectName = (name == null || name.trim().isEmpty()) ? "untitled" : name.trim();
 		cp5 = new ControlP5(mainApplet); // must be called before creating buttons;
+		uiFont14 = mainApplet.createFont("NeueMachina-Regular.otf", 14, true);
+		uiFont16 = mainApplet.createFont("NeueMachina-Regular.otf", 16, true);
+		uiFont20 = mainApplet.createFont("NeueMachina-Regular.otf", 20, true);
 		initializeDisplays();
 		mainApplet.image(canvaUI, 0, 0);
 		scanMediaFiles();
@@ -616,8 +632,7 @@ public class Project {
 	        .disableCollapse()
 	        .hideBar();
 
-	    // font (could be declared once globally instead)
-	    PFont myFont = mainApplet.createFont("NeueMachina-Regular.otf", 14, true);
+	    PFont myFont = uiFont14;
 
 	    // add one button per available display
 	    for (int i = 0; i < availableDisplays.size(); i++) {
@@ -685,15 +700,14 @@ public class Project {
      */
 	void createScreenButtons() {
 		if (screenList != null) screenList.remove();
-		
+
 		screenList = cp5.addGroup("Screen List")
 				.setPosition(hx1 + r, hy2 - 2 * r - screenButtonsArea)
 				.setBackgroundHeight(screenButtonsArea)
 				.disableCollapse();
 				//.hideBar();
 
-        PFont myFont = mainApplet.createFont("NeueMachina-Regular.otf", 14, true);
-		//PFont myFont = mainApplet.createFont("Arial", 14, true);
+        PFont myFont = uiFont14;
 
         // ---- Add Screen button ----
         Button showBtn = cp5.addButton("Show Screen")
@@ -804,9 +818,8 @@ public class Project {
 				.setColorBackground(mainApplet.color(100))
                 .setColorForeground(mainApplet.color(60)).hideBar();
 
-        PFont myFont = mainApplet.createFont("NeueMachina-Regular.otf", 14, true);
-        //PFont myFont = mainApplet.createFont("Arial", 14, true);
-		
+        PFont myFont = uiFont14;
+
 		// Style the new radio button's label
 		screenRadio.getItem(optionName)
 			.getCaptionLabel()
@@ -866,8 +879,7 @@ public class Project {
 
 
 	 // load a font (you could make this global so it’s reused)
-	    //PFont myFont = mainApplet.createFont("Arial", 14, true);
-        PFont myFont = mainApplet.createFont("NeueMachina-Regular.otf", 14, true);
+        PFont myFont = uiFont14;
 	    sceneList.getCaptionLabel()
 	    .setFont(myFont)
 	    .setColor(120)
@@ -916,6 +928,82 @@ public class Project {
 	        public void controlEvent(CallbackEvent event) {
 	            if (event.getAction() == ControlP5.ACTION_RELEASE) {
 	                DelCurScene();
+	            }
+	        }
+	    });
+
+	    // ---- Loop toggle button ----
+	    Toggle loopToggle = cp5.addToggle("Loop Scenes")
+	        .setPosition(r + 120, r)
+	        .setSize(40, screenButtonsArea)
+	        .setCaptionLabel("Loop")
+	        .setValue(loopScenes)
+	        .setGroup(sceneList);
+
+	    loopToggle.getCaptionLabel()
+	        .setFont(myFont)
+	        .align(ControlP5.CENTER, ControlP5.CENTER);
+	    loopToggle.setColorBackground(mainApplet.color(60, 60, 120));
+	    loopToggle.setColorForeground(mainApplet.color(90, 90, 160));
+	    loopToggle.setColorActive(mainApplet.color(100, 100, 220));
+	    loopToggle.setColorLabel(mainApplet.color(255));
+
+	    loopToggle.addCallback(new CallbackListener() {
+	        public void controlEvent(CallbackEvent event) {
+	            if (event.getAction() == ControlP5.ACTION_RELEASE) {
+	                loopScenes = loopToggle.getState();
+	            }
+	        }
+	    });
+
+	    // ---- Autoplay toggle ----
+	    Toggle autoPlayToggle = cp5.addToggle("Autoplay")
+	        .setPosition(r + 180, r)
+	        .setSize(40, screenButtonsArea)
+	        .setCaptionLabel("Auto")
+	        .setValue(autoPlay)
+	        .setGroup(sceneList);
+
+	    autoPlayToggle.getCaptionLabel()
+	        .setFont(myFont)
+	        .align(ControlP5.CENTER, ControlP5.CENTER);
+	    autoPlayToggle.setColorBackground(mainApplet.color(80, 60, 120));
+	    autoPlayToggle.setColorForeground(mainApplet.color(110, 90, 160));
+	    autoPlayToggle.setColorActive(mainApplet.color(150, 100, 220));
+	    autoPlayToggle.setColorLabel(mainApplet.color(255));
+
+	    autoPlayToggle.addCallback(new CallbackListener() {
+	        public void controlEvent(CallbackEvent event) {
+	            if (event.getAction() == ControlP5.ACTION_RELEASE) {
+	                autoPlay = autoPlayToggle.getState();
+	                autoPlayLastTime = mainApplet.millis(); // reset timer on toggle
+	            }
+	        }
+	    });
+
+	    // ---- Autoplay delay numberbox ----
+	    Numberbox delayBox = cp5.addNumberbox("Delay (s)")
+	        .setPosition(r + 230, r)
+	        .setSize(50, screenButtonsArea)
+	        .setValue(autoPlayDelay)
+	        .setMin(1)
+	        .setMax(60)
+	        .setScrollSensitivity(0.1f)
+	        .setGroup(sceneList);
+
+	    delayBox.getCaptionLabel().hide();
+	    delayBox.getValueLabel()
+	        .setFont(myFont)
+	        .align(ControlP5.CENTER, ControlP5.CENTER);
+	    delayBox.setColorBackground(mainApplet.color(50));
+	    delayBox.setColorForeground(mainApplet.color(80));
+	    delayBox.setColorActive(mainApplet.color(110));
+	    delayBox.setColorLabel(mainApplet.color(255));
+
+	    delayBox.addCallback(new CallbackListener() {
+	        public void controlEvent(CallbackEvent event) {
+	            if (event.getAction() == ControlP5.ACTION_BROADCAST) {
+	                autoPlayDelay = delayBox.getValue();
 	            }
 	        }
 	    });
@@ -969,8 +1057,7 @@ public class Project {
 	    Toggle t = sceneRadio.getItem(optionName);
 
 	    // ---- Styling label ----
-        PFont myFont = mainApplet.createFont("NeueMachina-Regular.otf", 20, true);
-        //PFont myFont = mainApplet.createFont("Arial", 20, true); // load once globally if you prefer
+        PFont myFont = uiFont20;
 //
 	    t.getCaptionLabel().setFont(myFont);
 	    t.setColorLabel(mainApplet.color(255)); // label text color (white)
@@ -1037,9 +1124,7 @@ public class Project {
 	    mediaList.getCaptionLabel().setVisible(false);
 	    mediaList.hideBar();
 
-	    // Load a custom font (adjust name/size to your liking)
-        PFont myFont = mainApplet.createFont("NeueMachina-Regular.otf", 16, true);
-        //PFont myFont = mainApplet.createFont("Arial", 12, true);
+        PFont myFont = uiFont16;
 
 	    for (int i = 0; i < mediaFiles.size(); i++) {
 	        String name = mediaFiles.get(i);
@@ -1089,13 +1174,9 @@ public class Project {
                 .setBackgroundHeight(hy2 - hy1 - 2 * r)
                 .disableCollapse();
 
-        PFont myFont = mainApplet.createFont("NeueMachina-Regular.otf", 14, true);
+        PFont myFont = uiFont14;
         generatorList.getCaptionLabel().setFont(myFont).setVisible(false).toUpperCase(false);
         generatorList.hideBar();
-
-        // Load a custom font (adjust name/size to your liking)
-        //PFont myFont = mainApplet.createFont("NeueMachina-Regular.otf", 14, true);
-        //PFont myFont = mainApplet.createFont("Arial", 12, true);
 
         for (int i = 0; i < availableGenerators.size(); i++) {
             LunaContentGenerator generator = availableGenerators.get(i);
@@ -1183,6 +1264,17 @@ public class Project {
 			scenes.get(currentScene).render();
 		}
 
+		// Autoplay: advance scene when delay has elapsed
+		if (autoPlay && !isTransitioning) {
+			if (mainApplet.millis() - autoPlayLastTime >= autoPlayDelay * 1000) {
+				int target = currentScene + 1;
+				if (target >= scenes.size() && loopScenes) {
+					target = 0;
+				}
+				startTransition(target);
+			}
+		}
+
 		// Update screens with appropriate media list based on transition state
 		if (isTransitioning) {
 			// During transition, screens need access to both scenes' media
@@ -1207,7 +1299,7 @@ public class Project {
      * @see #drawTimelinePanel(int)
      */
 	void drawUI() {
-        PFont myFont = mainApplet.createFont("NeueMachina-Regular.otf", 20, true);
+        PFont myFont = uiFont20;
 		canvaUI.beginDraw();
 		canvaUI.background(33);
 
@@ -1361,12 +1453,11 @@ public class Project {
 	public void keyreleased(char k, int kc) {
 		saveToFile();
 		if (k == ' ' && !isTransitioning) {
-//			sceneRadio.deactivate(currentScene);
-//			currentScene = PApplet.constrain(currentScene+1,0,scenes.size()-1);
-//			sceneRadio.activate(currentScene);
-//			selectScene(currentScene);
-			startTransition(currentScene + 1);
-			//PApplet.println("Next scene : currentScene + 1");
+			int target = currentScene + 1;
+			if (target >= scenes.size() && loopScenes) {
+				target = 0;
+			}
+			startTransition(target);
 		}
 	}
 
@@ -1410,6 +1501,7 @@ public class Project {
 		nextScene = -1;
 		isTransitioning = false;
 		transitionProgress = 0;
+		autoPlayLastTime = mainApplet.millis(); // reset autoplay timer from end of transition
 
 		sceneRadio.activate(currentScene);
 	}
